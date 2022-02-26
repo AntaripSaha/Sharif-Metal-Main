@@ -27,6 +27,7 @@ class CreateRequestProductsTable extends Migration
             $table->integer('del_qnt')->default(0);
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
             $table->foreign('req_id')->references('id')->on('sell_requests')->onDelete('cascade');
+            $table->integer('deleted')->default(0);
             $table->timestamps();
         });
     }

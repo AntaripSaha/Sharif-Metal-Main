@@ -27,6 +27,7 @@ class CreateUndeliveredsTable extends Migration
             $table->boolean('is_approved')->default(0);
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
             $table->foreign('req_id')->references('id')->on('sell_requests')->onDelete('cascade');
+            $table->integer('deleted')->default(0);
             $table->timestamps();
         });
     }
