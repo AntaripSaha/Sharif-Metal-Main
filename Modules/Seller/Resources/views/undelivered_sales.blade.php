@@ -57,6 +57,7 @@
                                 <tr>
                                     <th><input type="checkbox"></th>
                                     <th>Req No</th>
+                                    <th>Voucher No</th>
                                     <th>Party Name</th>
                                     <th>Seller Code</th>
                                     <th>Request Date</th>

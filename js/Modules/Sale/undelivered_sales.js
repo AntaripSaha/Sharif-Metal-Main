@@ -8,6 +8,7 @@ $(function () {
       columns: [
           {data: 'input', name: 'input'},
           {data: 'req_id', name: 'req_id'},
+          {data: 'voucher_no', name: 'voucher_no'},
           {data: 'customer.customer_name', name: 'customer.customer_name'},
           {data: 'seller.user_id', name: 'seller.user_id'},
           {data: 'v_date', name: 'v_date'},

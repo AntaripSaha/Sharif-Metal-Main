@@ -1109,7 +1109,7 @@ class SellerController extends BaseController
     public function re_order($req_id)
     {
         self::voucher_no();
-        $voucher_no_n = $this->voucher_no();
+        $voucher_no_n = SellRequest::where('id', $req_id)->pluck('voucher_no');
 
         self::bill_no();
         $bill_no = $this->bill_no();
@@ -1120,12 +1120,11 @@ class SellerController extends BaseController
             $req_details = SellRequest::where('id',$req_id)->first();
             // $data['req_id'] = generateRandomStr(8);
             $data['req_id'] = $bill_no;
-
             if ($this->user->isOfficeAdmin()) {
                 $data['is_approved'] = 1;
                 $data['approved_by'] = $this->user->id;
                 // $data['voucher_no']= 'v-'.generateRandomStr(8);
-                $data['voucher_no']= $voucher_no_n;
+                $data['voucher_no']= $voucher_no_n[0];
 
             }else{
                 $data['seller_id'] = $this->user->id;
@@ -1761,11 +1760,8 @@ class SellerController extends BaseController
 
     // rejected_sales method start
     public function rejected_status($id){
-        
                 if($this->user->isOfficeAdmin()){
-
                     $sell_request_id = SellRequest::where('id', $id)->select('id')->first();
-
                     if($sell_request_id){
                         $reject_request = SellRequest::find($id);
                         $reject_request->is_rejected = true;
@@ -1774,11 +1770,7 @@ class SellerController extends BaseController
                     }else{
                         return back()->with('error','Error message');
                     }
-                    
-                    
-
                     }
-
     }
     // rejected_sales method end
 
@@ -1823,7 +1815,7 @@ class SellerController extends BaseController
         }
         return "aaaaa";
     }
- 
+
     // Null Price Update function End.......
 
     //undelivered  Soft Delete 
