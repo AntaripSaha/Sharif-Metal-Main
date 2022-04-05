@@ -176,7 +176,8 @@
                                 <table class="table table-bordered table-hover" id="normalinvoice">
                                     <thead>
                                         <tr>
-                                            <th class="text-center product_field">Item Information <i class="text-danger">*</i></th>
+                                            <th class="text-center product_field">Item Information <i
+                                                    class="text-danger">*</i></th>
                                             <th>Head Code</th>
                                             <th class="text-center">Qnty <i class="text-danger">*</i></th>
                                             <th class="text-center">Rate <i class="text-danger">*</i></th>
@@ -288,6 +289,9 @@
             var selected_el = $("#customer_Select").select2('data')[0]['text'];
             var res = selected_el.split("-");
             $('#dco_code').val(res[0]);
+            
+            var url = baseUrl + "seller/get_customer/" + customer_id;
+            getAjaxdata(url, customerCallback, 'get');
         });
 
     $("#seller_Select").select2()
@@ -304,6 +308,11 @@
 
         $("#price").val(response.price);
         $('#head_code').val(response.head_code);
+    }
+    
+    var customerCallback = function (response) {
+        $("#phn_no").val(response.customer_mobile);
+        $('#pname').val(response.customer_address);
     }
 
     function quantity_calculate(e) {
@@ -410,7 +419,7 @@
 
                 key++;
             } else {
-                swal("", "You can not add more than 100 product ", "warning")
+                swal("", "You can not add more than 10 product ", "warning")
             }
 
 

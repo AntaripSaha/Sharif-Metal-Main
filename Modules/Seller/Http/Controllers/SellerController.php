@@ -23,6 +23,7 @@ use Modules\Warehouse\Entities\Warehouse;
 use App\Exports\SaleRequestDetailsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Hash;
+
 use PDF;
 use App\User;
 use Carbon\Carbon;
@@ -32,8 +33,6 @@ use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
-use Mockery\Undefined;
-use phpDocumentor\Reflection\Types\Null_;
 
 class SellerController extends BaseController
 {
@@ -151,13 +150,12 @@ class SellerController extends BaseController
             }
 
             $bill_no = 'BL-'.$now->year.$month.'-'.$invNumber;
-          //  $bill_no = 'BL-'.$invNumber;
             return $bill_no;
         }
     }
 
-    public function add_sell(Request $request)
-    {   
+    public function old_add_sell(Request $request)
+    {     
         
         if(!$this->user->can('add_sells',app('Modules\Seller\Entities\Seller'))){
             return redirect()->route('users.index')->with('flash',array('status'=>'error','message'=>'permission denied'));
@@ -185,6 +183,85 @@ class SellerController extends BaseController
                     $data['is_approved'] = 0;
                     $data['approved_by'] = null;
                 }
+                
+                $now = Carbon::now();
+                $currentYear = $now->year;
+                $currentMonth = $now->month;
+                $currentDay = $now->day;
+                $data['req_id'] = "BL-" . $currentYear . $currentMonth . $currentDay .'-'. explode("-",$voucher_no)[1];
+                $cus = Customer::where('id',$data['customer_id'])->first();
+                $seller_id = $cus->seller_id;
+                $data['voucher_no'] = $voucher_no;
+
+                $data['seller_id'] = $seller_id;
+                $data['due_amount'] = $request->due_amount;
+
+                $re_id = SellRequest::createRequest($data);
+                foreach ($data['product_id'] as $key => $value) {
+                    $n_data['product_id'] = $data['product_id'][$key];
+                    $product_info = Product::where('id', $data['product_id'][$key])->first();
+                    $n_data['unit_price'] = $product_info->price;
+                    $n_data['production_price'] = $product_info->production_price;
+                    // $n_data['head_code'] = $data['head_code'][$key];
+                    $n_data['qnty'] = $data['qnty'][$key];
+                    $n_data['prod_disc'] = $data['prod_disc'][$key];
+                    $n_data['req_id'] = $re_id;
+                    RequestProduct::createProductReq($n_data);
+                }
+                return response()->json(['status'=>'success'], 200);
+            }catch(\Exception $e){
+                return response()->json(['status'=>$e->getMessage()], 500);
+            }
+        }else{
+            $role_id = $this->user->role_id;
+            if ($this->user->role_id != 4) {
+                $sellers = User::where('role_id',4)->get();
+                $customers = Customer::get();
+            }else{
+
+                $sellers = $this->user->id;
+
+                $customers = Customer::where('seller_id',$this->user->id)->get();
+            }
+
+            $products = Product::where('status', 1)->get();
+            $companies = Company::where('parent_id','!=',0)->get();
+            return view('seller::new_sellreq',compact('customers','products','companies','sellers','role_id'));exit;
+        }
+    }
+    
+ //Add Sell last updated at 11/01/22 Start    
+    public function add_sell(Request $request)
+    {   
+        
+        
+        if(!$this->user->can('add_sells',app('Modules\Seller\Entities\Seller'))){
+            return redirect()->route('users.index')->with('flash',array('status'=>'error','message'=>'permission denied'));
+        }
+        if($request->isMethod('post')){
+            try{
+                self::voucher_no();
+                $voucher_no = $this->voucher_no();
+
+                self::bill_no();
+                $bill_no = $this->bill_no();
+                // return $voucher_no;
+                $data=$request->all();
+                // $data['req_id'] = generateRandomStr(8);
+                $data['req_id'] = $bill_no;
+
+
+                if ($this->user->isOfficeAdmin()) {
+                    $data['is_approved'] = 1;
+                    $data['approved_by'] = $this->user->id;
+                    // $data['voucher_no']= 'v-'.generateRandomStr(8);
+                   
+                }
+                else{
+                    $data['is_approved'] = 0;
+                    $data['approved_by'] = null;
+                }
+                
                 $now = Carbon::now();
                 $currentYear = $now->year;
                 $currentMonth = $now->month;
@@ -232,9 +309,101 @@ class SellerController extends BaseController
             $companies = Company::where('parent_id','!=',0)->get();
             return view('seller::new_sellreq',compact('customers','products','companies','sellers','role_id'));exit;
         }
-    }
+    }    
+ //Add Sell last updated at 11/01/22 End     
 
-    //Edit Sell Request Start
+ //Edit Sell Request Start
+    public function old_edit_requisition_details(Request $request, $id){
+        if($request->isMethod('post')){
+            try{
+                $data = $request->all();
+                //Update Sell Request Table Data
+                $updateSellRequest = DB::table('sell_requests')
+                                    ->where('id', $id)
+                                    ->update([
+                                        'amount' => $data['amount'], 'discount' => $data['discount'], 'remarks' => $data['remarks'],
+                                        'transp_name' => $data['transp_name'], 'sale_disc' => $data['sale_disc']
+                                    ]);
+                // Now Delete All Product List for This ID First
+                $delete_prev_data = RequestProduct::where('req_id', $id)->delete();
+                if($delete_prev_data){
+                    // Insert New Data on product_request_details
+                    foreach ($data['product_id'] as $key => $value) {
+                        $n_data['product_id'] = $data['product_id'][$key];
+                        $n_data['qnty'] = $data['qnty'][$key];
+                        $n_data['prod_disc'] = $data['prod_disc'][$key];
+                        $n_data['unit_price'] = $data['unit_price'][$key];
+                        $n_data['production_price'] = $data['production_price'][$key];
+                        $n_data['req_id'] = $id;
+                        RequestProduct::createProductReq($n_data);
+                    }
+                    return redirect()->route('seller.index');
+                }else{
+                    return "Error_Occure. Contact With Developers";
+                    exit();
+                }
+            }catch(\Exception $e){
+                return response()->json(['status'=>$e->getMessage()], 500);
+            }
+        }else{
+            $sale_request_master = SellRequest::find($id);
+            $product_details = RequestProduct::with('products')->where('req_id', $id)->get();
+            $customer_name = Customer::select('customer_name')->where('id', $sale_request_master->customer_id)->first();
+            $seller_info = User::select('name', 'user_id')->where('id', $sale_request_master->seller_id)->first();
+            $products = Product::all();
+
+            return view('seller::edit_sale_requisition', compact('sale_request_master', 'product_details',
+                                                             'customer_name', 'seller_info', 'products', 'id'));
+        }
+    }
+ // Edit Sale Request End
+    
+    
+ //Edit Sell Request Start
+    public function latest_edit_requisition_details(Request $request, $id){
+        if($request->isMethod('post')){
+            try{
+                $data = $request->all();
+                //Update Sell Request Table Data
+                $updateSellRequest = DB::table('sell_requests')
+                                    ->where('id', $id)
+                                    ->update([
+                                        'amount' => $data['amount'], 'discount' => $data['discount'], 'remarks' => $data['remarks'],
+                                        'transp_name' => $data['transp_name'], 'sale_disc' => $data['sale_disc']
+                                    ]);
+                // Now Delete All Product List for This ID First
+                $delete_prev_data = RequestProduct::where('req_id', $id)->delete();
+                if($delete_prev_data){
+                    // Insert New Data on product_request_details
+                    foreach ($data['product_id'] as $key => $value) {
+                        $n_data['product_id'] = $data['product_id'][$key];
+                        $n_data['qnty'] = $data['qnty'][$key];
+                        $n_data['prod_disc'] = $data['prod_disc'][$key];
+                        $n_data['req_id'] = $id;
+                        RequestProduct::createProductReq($n_data);
+                    }
+                    return redirect()->route('seller.index');
+                }else{
+                    return "Error_Occure. Contact With Developers";
+                    exit();
+                }
+            }catch(\Exception $e){
+                return response()->json(['status'=>$e->getMessage()], 500);
+            }
+        }else{
+            $sale_request_master = SellRequest::find($id);
+            $product_details = RequestProduct::with('products')->where('req_id', $id)->get();
+            $customer_name = Customer::select('customer_name')->where('id', $sale_request_master->customer_id)->first();
+            $seller_info = User::select('name', 'user_id')->where('id', $sale_request_master->seller_id)->first();
+            $products = Product::all();
+
+            return view('seller::edit_sale_requisition', compact('sale_request_master', 'product_details',
+                                                             'customer_name', 'seller_info', 'products', 'id'));
+        }
+    }
+ // Edit Sale Request End
+ 
+ //Edit Sell Request last updated at 11/01/22 Start
     public function edit_requisition_details(Request $request, $id){
         if($request->isMethod('post')){
             try{
@@ -279,115 +448,8 @@ class SellerController extends BaseController
                                                              'customer_name', 'seller_info', 'products', 'id'));
         }
     }
-    // Edit Sale Request End
+// Edit Sell Request last updated at 11/01/22 End
     
-    //Edit Sell Request Start
-    public function pppedit_requisition_details(Request $request, $id){
-        return $id;
-        if($request->isMethod('post')){
-            try{
-                $data = $request->all();
-                //Update Sell Request Table Data
-                $updateSellRequest = DB::table('sell_requests')
-                                    ->where('id', $id)
-                                    ->update([
-                                        'amount' => $data['amount'], 'discount' => $data['discount'], 'remarks' => $data['remarks'],
-                                        'transp_name' => $data['transp_name'], 'sale_disc' => $data['sale_disc']
-                                    ]);
-                // Now Delete All Product List for This ID First
-                $delete_prev_data = RequestProduct::where('req_id', $id)->delete();
-                if($delete_prev_data){
-                    // Insert New Data on product_request_details
-                    foreach ($data['product_id'] as $key => $value) {
-                        $n_data['product_id'] = $data['product_id'][$key];
-                        $n_data['qnty'] = $data['qnty'][$key];
-                        $n_data['undelivered_qnt'] = $data['qnty'][$key];
-                        $n_data['prod_disc'] = $data['prod_disc'][$key];
-                        $n_data['unit_price'] = $data['unit_price'][$key];
-                        $n_data['production_price'] = $data['production_price'][$key];
-                        $n_data['req_id'] = $id;
-                        RequestProduct::createProductReq($n_data);
-                    }
-                    return redirect()->route('seller.index');
-                }else{
-                    return "Error_Occure. Contact With Developers";
-                    exit();
-                }
-            }catch(\Exception $e){
-                return response()->json(['status'=>$e->getMessage()], 500);
-            }
-        }else{
-            $sale_request_master = SellRequest::find($id);
-            $product_details = RequestProduct::with('products')->where('req_id', $id)->get();
-            $customer_name = Customer::select('customer_name')->where('id', $sale_request_master->customer_id)->first();
-            $seller_info = User::select('name', 'user_id')->where('id', $sale_request_master->seller_id)->first();
-            $products = Product::all();
-
-            return view('seller::edit_sale_requisition', compact('sale_request_master', 'product_details',
-                                                            'customer_name', 'seller_info', 'products', 'id'));
-        }
-    }
-        
-    //Edit Sell Request Start
-    public function loledit_requisition_details(Request $request, $id){
-
-        // return $id;
-        if($request->isMethod('post')){
-            try{
-                $data = $request->all();
-                //Update Sell Request Table Data
-                $updateSellRequest = DB::table('sell_requests')
-                                    ->where('id', $id)
-                                    ->update([
-                                        'amount' => $data['amount'], 'discount' => $data['discount'], 'remarks' => $data['remarks'],
-                                        'transp_name' => $data['transp_name'], 'sale_disc' => $data['sale_disc']
-                                    ]);
-                // Now Delete All Product List for This ID First 
-                $delete_prev_data = RequestProduct::where('req_id', $id)->delete();
-                $delete_prev_data = Undelivered::where('req_id', $id)->delete();
-
-                if($delete_prev_data ){
-                    // Insert New Data on product_request_details
-                    foreach ($data['product_id'] as $key => $value) {
-                        $n_data['product_id'] = $data['product_id'][$key];
-                        $n_data['qnty'] = $data['qnty'][$key];
-                        $n_data['undelivered_qnty'] = $data['qnty'][$key];
-                        $n_data['prod_disc'] = $data['prod_disc'][$key];
-                        $n_data['req_id'] = $id;
-                     
-                        RequestProduct::createProductReq($n_data);
-                    }
-                    foreach ($data['product_id'] as $key => $value) {
-                        $n_data['product_id'] = $data['product_id'][$key];
-                        $n_data['qnty'] = $data['qnty'][$key];
-                        $n_data['undelivered_qnty'] = $data['qnty'][$key];
-                        $n_data['prod_disc'] = $data['prod_disc'][$key];
-                        $n_data['req_id'] = $id;
-                       
-                        Undelivered::createProductDel($n_data);
-                    }
-                    return redirect()->route('seller.index');
-                }else{
-                    return "Error_Occure. Contact With Developers";
-                    exit();
-                }
-                
-            }catch(\Exception $e){
-                return response()->json(['status'=>$e->getMessage()], 500);
-            }
-        }else{
-            $sale_request_master = SellRequest::find($id);
-            $product_details = RequestProduct::with('products')->where('req_id', $id)->get();
-            $customer_name = Customer::select('customer_name')->where('id', $sale_request_master->customer_id)->first();
-            $seller_info = User::select('name', 'user_id')->where('id', $sale_request_master->seller_id)->first();
-            $products = Product::all();
-
-            return view('seller::edit_sale_requisition', compact('sale_request_master', 'product_details',
-                                                            'customer_name', 'seller_info', 'products', 'id'));
-        }
-    }
-    // Edit Sale Request End
-
 
     public function sell_req_details($id)
     {
@@ -583,12 +645,7 @@ class SellerController extends BaseController
         // if(!$this->user->can('view_sales',app('Modules\Seller\Entities\Seller')) ){
         //     return redirect()->route('users.index')->with('flash',array('status'=>'error','message'=>'permission denied'));
         // }
-          $data = SellRequest::with('customer','seller')
-                        ->where('is_delivered',1)
-                        ->where('is_rejected',0)
-                        ->get();
-
-    
+        $data = SellRequest::with('customer','seller')->where('is_delivered',1)->where('is_rejected',0)->get();
         // return $data;
         if ($request->ajax()) {
             return Datatables::of($data)
@@ -817,9 +874,8 @@ class SellerController extends BaseController
         }
     }
     /*Print Invoice*/
-    public function old_print_invoice($invoice_id)
+    public function off_29_01_22print_invoice($invoice_id)
     {
-        
         $pdf_style = '<style>
             *{
                 font-size:15px;
@@ -841,12 +897,10 @@ class SellerController extends BaseController
         $pdf->setPaper('A4', 'potrait');
         $name = "INV".$chalan->voucher_no.".pdf";
         return $pdf->stream($name, array("Attachment" => false));
-   
     }
     public function print_invoice($invoice_id){
         $pdf_style = '<style>
                         *{
-                            font-size:15px;
                         }
                         table,td,th{
                             border: 2px solid black;
@@ -914,16 +968,16 @@ class SellerController extends BaseController
         $total_del_amount = 0;
         $total_discount_amount = 0;
         $del_discount_amount = 0;
-        $sale_discount = (int)$data['sale_discount'] / 100;
+        $sale_discount = (float)$data['sale_discount'] / 100;
 
         $amount = 0;
         $del_amount = 0;
     
         foreach ($data['product_id'] as $key => $value) {
-            RequestProduct::where('req_id', $id)->where('product_id', $data['product_id'][$key]) ->update(array('unit_price' =>  (int)$data['unit_price'][$key]));
+            RequestProduct::where('req_id', $id)->where('product_id', $data['product_id'][$key]) ->update(array('unit_price' =>  (float)$data['unit_price'][$key]));
 
-            $total_amount = $total_amount + ((int)$data['unit_price'][$key] * $data['qnty'][$key]);
-            $total_del_amount = $total_del_amount + ((int)$data['unit_price'][$key] * $data['del_qnt'][$key]);
+            $total_amount = $total_amount + ((float)$data['unit_price'][$key] * $data['qnty'][$key]);
+            $total_del_amount = $total_del_amount + ((float)$data['unit_price'][$key] * $data['del_qnt'][$key]);
         }
 
         $amount = $total_amount - ($sale_discount * $total_amount);
@@ -938,7 +992,7 @@ class SellerController extends BaseController
         'discount' =>  $total_discount_amount, 
         'del_amount' => $del_amount, 
         'del_discount' => $del_discount_amount,
-        'sale_disc' => (int)$data['sale_discount']
+        'sale_disc' => (float)$data['sale_discount']
     ));
 
         return redirect('/seller/bill_edit/'.$id);
@@ -949,11 +1003,69 @@ class SellerController extends BaseController
     public function undelivered_sales(Request $request)
     {
         
+        
         if( auth('web')->user()->role->id == 4 ){
             $sells = SellRequest::with('customer','seller')->where('seller_id',auth('web')->user()->id)->where('is_approved',1)->where('wasted', NULL)->where('fully_delivered',0)->get();
         }
         else{
             $sells = SellRequest::with('customer','seller')->where('is_approved',1)->where('wasted', NULL)->where('fully_delivered',0)->get();
+        }
+        
+        $data = [];
+        foreach ($sells as $key => $sale) {
+            if ($sale->fully_delivered == 0) {
+                $data[$key] = $sale;
+            }
+        }
+        if ($request->ajax()) {
+            return Datatables::of($data)
+                    ->addIndexColumn()
+                    ->addColumn('action', function($row){
+                    $btn = "";
+                    $btn_view ='';
+                    if($this->user->isOfficeAdmin()){
+                        $btn_view ='<a class="mr-2 cp view-tr btn btn-success btn-sm" id="view-tr-'.$row->id.'"> View</a>';
+                        $btn = $btn_view;
+                    }
+                    if($this->user->can('view_sales',app('Modules\Seller\Entities\Seller')) ){
+                        $btn_view ='<a class="mr-2 cp view-tr btn btn-success btn-sm" id="view-tr-'.$row->id.'"> View</a>';
+                        $btn = $btn_view;
+                    }
+                    elseif( $this->user->role->id == 18 ){
+                        $btn_view ='<a class="mr-2 cp view-tr btn btn-success btn-sm" id="view-tr-'.$row->id.'"> View</a>';
+                        $btn = $btn_view;
+                    }
+                    return $btn;
+                    })
+                    ->addColumn('input',function($row){
+                            $input = '<input type="checkbox" class="data-input ml-1"  name="data[]"  value="'.$row->id.'" >';
+                            return $input;
+                    })
+                    ->editColumn('price', function ($row) {
+                        $data = $row->amount-$row->del_amount;
+                        return $data;
+                    })
+                ->rawColumns(['action','input'])
+                ->make(true); exit;
+        }
+        return view('seller::undelivered_sales');
+    }
+    
+    
+
+    
+    // new undeliverd_sales
+    
+    
+       public function new_undelivered_sales(Request $request)
+    {
+        
+        
+        if( auth('web')->user()->role->id == 4 ){
+            $sells = SellRequest::with('customer','seller')->where('seller_id',auth('web')->user()->id)->where('is_approved',1)->where('is_delivered', 0)->where('fully_delivered',0)->get();
+        }
+        else{
+            $sells = SellRequest::with('customer','seller')->where('is_approved',1)->where('is_delivered', 0)->where('fully_delivered',0)->get();
         }
         
         $data = [];
@@ -1049,6 +1161,63 @@ class SellerController extends BaseController
     }
     
     //approve order funciton start
+    public function old_undelivered_details_approve($id){
+        self::voucher_no();
+        $voucher_no_n = $this->voucher_no();
+
+
+        try{
+            $products = RequestProduct::with('products')->where('req_id',$id)->where('qnty','!=','del_qnt')->get();
+            $req_details = SellRequest::where('id',$id)->first();
+
+            // $data['req_id'] = generateRandomStr(8);
+            $now = Carbon::now();
+            $currentYear = $now->year;
+            $currentMonth = $now->month;
+            $currentDay = $now->day;
+            $data['req_id'] = "BL-" . $currentYear . $currentMonth . $currentDay .'-'. explode("-",$voucher_no_n)[1];
+
+            if ($this->user->isOfficeAdmin()) {
+                $data['is_approved'] = 1;
+                $data['approved_by'] = $this->user->id;
+
+            }else{
+                $data['is_approved'] = 1;
+                $data['approved_by'] = $this->user->id;
+            }
+            $data['voucher_no']= $voucher_no_n;
+            $data['v_date'] = date('Y-m-d');
+            $data['company_id'] = $req_details->company_id;
+            $data['seller_id'] = $req_details->seller_id;
+            $data['customer_id'] = $req_details->customer_id;
+            $data['pname'] = $req_details->pname;
+            $data['receiver'] = $req_details->receiver;
+            $data['dco_code'] = $req_details->dco_code;
+            $data['phn_no'] = $req_details->phn_no;
+            $data['remarks'] = 'Reorder of previos order No '. $id;
+            $data['amount'] = $req_details->amount - $req_details->del_amount;
+            $data['discount'] = $req_details->discount - $req_details->del_discount;
+            $data['sale_disc'] = $req_details->sale_disc;
+
+            $re_id = SellRequest::createRequest($data);
+            SellRequest::where('id',$id)->update(['fully_delivered'=>1]);
+            foreach ($products as $key => $product) {
+                if( $product->qnty != $product->del_qnt ){
+                    $n_data['product_id'] = $product->product_id;
+                    $n_data['qnty'] = $product->qnty - $product->del_qnt;
+                    $n_data['prod_disc'] = $product->prod_disc;
+                    $n_data['req_id'] = $re_id;
+                    RequestProduct::createProductReq($n_data);
+                }
+            }
+            return back()->with('success','Approved');
+        }catch(\Exception $e){
+            return back()->with('success',$e->getMessage());
+        }
+    }
+    //approve order funciton end
+    
+    //approve order funciton updated 11/01/22 start
     public function undelivered_details_approve($id){
         self::voucher_no();
         $voucher_no_n = $this->voucher_no();
@@ -1104,9 +1273,12 @@ class SellerController extends BaseController
             return back()->with('success',$e->getMessage());
         }
     }
-    //approve order funciton end
+    //approve order funciton   updated 11/01/22  end
+    
+    
+        //approve re_order funciton updated 11/01/22 start
 
-    public function re_order($req_id)
+       public function re_order($req_id)
     {
         self::voucher_no();
         $voucher_no_n = SellRequest::where('id', $req_id)->pluck('voucher_no');
@@ -1120,6 +1292,7 @@ class SellerController extends BaseController
             $req_details = SellRequest::where('id',$req_id)->first();
             // $data['req_id'] = generateRandomStr(8);
             $data['req_id'] = $bill_no;
+
             if ($this->user->isOfficeAdmin()) {
                 $data['is_approved'] = 1;
                 $data['approved_by'] = $this->user->id;
@@ -1164,7 +1337,178 @@ class SellerController extends BaseController
         }
         return response()->json(['status'=>'success']);
     }
+    
+        //approve re_order funciton   updated 11/01/22  end
 
+
+    public function old_re_order($req_id)
+    {
+        self::voucher_no();
+        $voucher_no_n = $this->voucher_no();
+
+        self::bill_no();
+        $bill_no = $this->bill_no();
+
+
+        try{
+            $products = RequestProduct::with('products')->where('req_id',$req_id)->where('qnty','!=','del_qnt')->get();
+            $req_details = SellRequest::where('id',$req_id)->first();
+            // $data['req_id'] = generateRandomStr(8);
+            $data['req_id'] = $bill_no;
+
+            if ($this->user->isOfficeAdmin()) {
+                $data['is_approved'] = 1;
+                $data['approved_by'] = $this->user->id;
+                // $data['voucher_no']= 'v-'.generateRandomStr(8);
+                $data['voucher_no']= $voucher_no_n;
+
+            }else{
+                $data['seller_id'] = $this->user->id;
+            }
+            $data['v_date'] = date('Y-m-d');
+            $data['company_id'] = $req_details->company_id;
+            $data['seller_id'] = $req_details->seller_id;
+            $data['customer_id'] = $req_details->customer_id;
+            $data['pname'] = $req_details->pname;
+            $data['receiver'] = $req_details->receiver;
+            $data['dco_code'] = $req_details->dco_code;
+            $data['phn_no'] = $req_details->phn_no;
+            $data['remarks'] = 'Reorder of previos order No '. $req_id;
+            $data['amount'] = $req_details->amount - $req_details->del_amount;
+            $data['discount'] = $req_details->discount - $req_details->del_discount;
+            $data['sale_disc'] = $req_details->sale_disc;
+
+
+            $re_id = SellRequest::createRequest($data);
+            SellRequest::where('id',$req_id)->update(['fully_delivered'=>1]);
+            foreach ($products as $key => $product) {
+                $n_data['product_id'] = $product->product_id;
+                $n_data['qnty'] = $product->qnty - $product->del_qnt;
+                $n_data['prod_disc'] = $product->prod_disc;
+                $n_data['unit_price'] = $product->unit_price;
+                $n_data['production_price'] = $product->production_price;
+                $n_data['req_id'] = $re_id;
+                RequestProduct::createProductReq($n_data);
+            }
+            return response()->json(['status'=>'success'], 200);
+        }catch(\Exception $e){
+            return response()->json(['status'=>$e->getMessage()], 500);
+        }
+        return response()->json(['status'=>'success']);
+    }
+
+
+
+    public function old_direct_sale(Request $request)
+    {
+        self::voucher_no();
+        $voucher_no_n = $this->voucher_no();
+
+        self::bill_no();
+        $bill_no = $this->bill_no();
+
+        if (!$this->user->isOfficeAdmin()) {
+            return redirect()->route('users.index')->with('flash',array('status'=>'error','message'=>'permission denied'));
+        }
+        if($request->isMethod('post')){
+            try{
+                $data=$request->all();
+                // $data['req_id'] = generateRandomStr(8);
+                $data['req_id'] = $bill_no;
+                $customer_id = $data['customer_id'];
+                $seller_get = Customer::where('id',$customer_id)->first();
+                $data['seller_id'] = $seller_get->seller_id;
+                $data['del_date'] = $data['v_date'];
+                $data['del_amount'] = $data['amount'];
+                $data['del_discount'] = $data['discount'];
+                $data['is_approved'] = 1;
+                $data['is_delivered'] = 1;
+                $data['approved_by'] = $this->user->id;
+                $data['fully_delivered'] = 1;
+                // $v_no = 'v-'.generateRandomStr(8);
+                $data['voucher_no']= $voucher_no_n;
+                $re_id = SellRequest::createRequest($data);
+
+                return $data;
+                foreach ($data['product_id'] as $key => $value) {
+                    //Product Request//
+                    $n_data['product_id'] = $data['product_id'][$key];
+                    $n_data['qnty'] = $data['qnty'][$key];
+                    $n_data['del_qnt'] = $data['qnty'][$key];
+                    $n_data['prod_disc'] = $data['prod_disc'][$key];
+                    $n_data['req_id'] = $re_id;
+                    RequestProduct::createProductReq($n_data);
+                    //Warehouse Inserts to track//
+                    $in_data['product_id'] = $data['product_id'][$key];
+                    $in_data['out_qnt'] = $data['qnty'][$key];
+                    $in_data['warehouse_id'] = $data['warehouse_id'];
+                    $in_data['company_id']=$data['company_id'];
+                    $in_data['v_date']=$data['v_date'];
+                    $in_data['chalan_no']=$v_no;
+                    $in_data['created_by']=$this->user->id;
+                    $in_data['del_date'] = date('Y-m-d');
+                    WarehouseInserts::insertware_product($in_data);
+                    //Update the stock//
+                    $product_qnt= WarehouseProducts::select('sell_q','id')->where('warehouse_id',$data['warehouse_id'])->where('product_id',$data['product_id'][$key])->first();
+                    $id = $product_qnt->id;
+                    $out = $data['qnty'][$key];
+                    $new_q= $product_qnt->sell_q + $out;
+                    WarehouseProducts::where('id',$id)->update(['sell_q'=>$new_q]);
+                }
+
+                //Inventory Credit And Customer Debit//
+                $coaid = Accounts::select('HeadCode')->where('customer_id',$data['customer_id'])->first();
+                $cus_coa = $coaid->HeadCode;
+                $IsPosted=1;
+                $IsAppove=1;
+                $created_by = $this->user->id;
+                $updated_by = $this->user->id;
+                //Customer debit for Product Value
+                $customerdebit = array(
+                    'VNo'            =>  $v_no,
+                    'Vtype'          =>  'INV',
+                    'VDate'          =>  $data['v_date'],
+                    'COAID'          =>  $cus_coa,
+                    'Narration'      =>  'Customer debit For Invoice No -  '.$re_id.' Customer '.$seller_get->customer_name,
+                    'Debit'          =>  $data['amount'],
+                    'Credit'         =>  0,
+                    'IsPosted'       =>  $IsPosted,
+                    'created_by'     =>  $created_by,
+                    'updated_by'     =>  $updated_by,
+                    'company_id'     =>  $data['company_id'],
+                    'IsAppove'       =>  $IsAppove
+                );
+                Transactions:: createTransaction($customerdebit);
+                ///Inventory credit
+                $coscr = array(
+                    'VNo'            =>  $v_no,
+                    'Vtype'          =>  'INV',
+                    'VDate'          =>  $data['v_date'],
+                    'COAID'          =>  10107,
+                    'Narration'      =>  'Inventory credit For Invoice No'.$re_id,
+                    'Debit'          =>  0,
+                    'Credit'         =>  $data['amount'],//Deliver Amount
+                    'IsPosted'       =>  $IsPosted,
+                    'created_by'     =>  $created_by,
+                    'updated_by'     =>  $updated_by,
+                    'company_id'     =>  $data['company_id'],
+                    'IsAppove'       =>  $IsAppove
+                );
+                Transactions:: createTransaction($coscr);
+                return response()->json(['status'=>'success','data'=>$v_no], 200);
+            }catch(\Exception $e){
+                return response()->json(['status'=>$e->getMessage()], 500);
+            }
+        }else{
+            $customers = Customer::get();
+            $products = Product::all();
+            $warehouses = Warehouse::all();
+            $companies = Company::where('parent_id','!=',0)->get();
+            return view('seller::direct_sale',compact('customers','products','companies','warehouses'));exit;
+        }
+    }
+    
+    //updated 11/01/22
     public function direct_sale(Request $request)
     {
         self::voucher_no();
@@ -1274,6 +1618,7 @@ class SellerController extends BaseController
             return view('seller::direct_sale',compact('customers','products','companies','warehouses'));exit;
         }
     }
+    //updated 11/01/22
 
     public function sales_bydate(Request $request)
     {
@@ -1288,7 +1633,7 @@ class SellerController extends BaseController
             $new_sale_discount = $request->get('new_sale_discount');
             $updated_by = $this->user->id;
             $id = $request->id;
-            $amount = $request->get('amount');
+            $amount = $request->amount;
             $discount = $request->discount;
 
             SellRequest::where('id',$id)->update(['sale_discount_overwrite'=>$new_sale_discount, 'update_by'=>$updated_by, 'amount' => $amount, 'discount' => $discount]);
@@ -1308,7 +1653,6 @@ class SellerController extends BaseController
         }
     }
 
-    
 
 
     // All Undelivered Products Report Start
@@ -1590,28 +1934,27 @@ class SellerController extends BaseController
                                     ->groupBy('product_id')
                                     ->get();
 
-        }
-        elseif($product_id && $from_date == Null && $to_date == Null ){
+        }elseif($product_id && $from_date == Null && $to_date == Null ){
             $undelivered_products = Undelivered::with('products')
-                                                ->where('is_approved', 1)
-                                                ->where('deleted', 0)
-                                                ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
-                                                ->where('qnty' ,'<>', 'del_qnt')
-                                                ->where('product_id', $product_id)
-                                                ->groupBy('product_id')
-                                                ->get();
+                                    ->where('is_approved', 1)
+                                    ->where('deleted', 0)
+                                    ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
+                                    ->where('qnty' ,'<>', 'del_qnt')
+                                    ->where('product_id', $product_id)
+                                    ->groupBy('product_id')
+                                    ->get();
 
         }elseif($product_id && $from_date != Null && $to_date != Null ){
             $undelivered_products = Undelivered::with('products')
-                                                    ->where('is_approved', 1)
-                                                    ->where('deleted', 0)
-                                                    ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
-                                                    ->where('qnty' ,'<>', 'del_qnt')
-                                                    ->where('product_id', $product_id)
-                                                    ->where('created_at','>=', $from_date)
-                                                    ->where('created_at', '<=',  $to_date)
-                                                    ->groupBy('product_id')
-                                                    ->get();
+                                    ->where('is_approved', 1)
+                                    ->where('deleted', 0)
+                                    ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
+                                    ->where('qnty' ,'<>', 'del_qnt')
+                                    ->where('product_id', $product_id)
+                                    ->where('created_at','>=', $from_date)
+                                    ->where('created_at', '<=',  $to_date)
+                                    ->groupBy('product_id')
+                                    ->get();
 
         }elseif($product_id && $from_date != Null){
             $undelivered_products = Undelivered::with('products')
@@ -1650,7 +1993,7 @@ class SellerController extends BaseController
         return view('seller::total_undelivered_product_report_result', compact('undelivered_products', 'product', 'product_id','from_date','to_date'));
     }
     // Undelivered Product Search updated 11/01/22 End
-    
+
     // Undelivered Product Search Start
     public function old_undelivered_product_search(Request $request){
         $product_id = $request->product_id;
@@ -1686,7 +2029,6 @@ class SellerController extends BaseController
         return view('seller::undeliveredProductReportView', compact('undelivered_products'));
     }
     // Undelivered Product Search End
-
 
     // Child Sell Requisition Show Start
     public function child_users_requisition(Request $request){
@@ -1730,6 +2072,8 @@ class SellerController extends BaseController
     }
     // Child Sell Requisition Show End
 
+
+
     //change password page start
     public function change_password_page($id){
         return view('seller::change_password.index', compact('id'));
@@ -1759,18 +2103,24 @@ class SellerController extends BaseController
     //change password end
 
     // rejected_sales method start
-    public function rejected_status($id){
-                if($this->user->isOfficeAdmin()){
-                    $sell_request_id = SellRequest::where('id', $id)->select('id')->first();
-                    if($sell_request_id){
-                        $reject_request = SellRequest::find($id);
-                        $reject_request->is_rejected = true;
-                        $reject_request->save();   
-                        return back()->with('success','Success message');
-                    }else{
-                        return back()->with('error','Error message');
-                    }
-                    }
+   public function rejected_status($id){
+     
+    if($this->user->isOfficeAdmin()){
+
+        $sell_request_id = SellRequest::where('id', $id)->select('id')->first();
+
+        if($sell_request_id){
+            $reject_request = SellRequest::find($id);
+            $reject_request->is_rejected = true;
+            $reject_request->save();   
+            return back()->with('success','Success message');
+        }else{
+            return back()->with('error','Error message');
+        }
+        
+        
+
+        }
     }
     // rejected_sales method end
 
@@ -1788,10 +2138,14 @@ class SellerController extends BaseController
 
         echo "Total=".$total;
     }
-
-
-    // Null Price Update function Start....... 
-
+    
+    
+    public function get_customer($id) {
+        $customers = Customer::select('*')->where('id',$id)->first();
+        return $customers;
+    }
+    
+    
     public function price_update(){
          
          $request_products = RequestProduct::where('unit_price', '=', NULL )->select('id', 'product_id')->get();
@@ -1801,31 +2155,26 @@ class SellerController extends BaseController
             ->update(array('unit_price' => $products[0]->price, 'production_price' => $products[0]->production_price));
         }
 
-        return redirect()->back()->with('success', 'Rebooted Successfully');
+        return "success";
 
 
     }
-
-    public function approval_update(){
-        $sell_request = SellRequest::select('id','is_approved')->get();
-        $undeli = Undelivered::all();
-        foreach($undeli as $key=>$und){
-             $request_product_update = Undelivered::where('req_id',$sell_request[$key]->id)
-            ->update(array('is_approved' => $sell_request[$key]->is_approved));
-        }
-        return "aaaaa";
-    }
-
-    // Null Price Update function End.......
-
+    
+    
     //undelivered  Soft Delete 
+
     public function undelivered_sales_delete($id){
+
+        // return $id;
         $sell_request = SellRequest::where('id', $id)->first();
         $sell_request->wasted = 1;
         $sell_request->save();
+
         RequestProduct::where('req_id', $id)->update(array('deleted' => 1));
         Undelivered::where('req_id', $id)->update(array('deleted' => 1));
+     
         return redirect()->back()->with('success', 'Task Completed');
     }
     //undelivered  Soft Delete
+
 }

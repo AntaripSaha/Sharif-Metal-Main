@@ -2,13 +2,6 @@
 @section('css')
 @endsection
 @section('content')
-
-<script>
-$('#myModal').on('shown.bs.modal', function () {
-  $('#myInput').trigger('focus')
-})
-</script>
-
 <!-- Main content -->
 <section class="content" id="ajaxview">
     <!-- Content Header (Page header) -->
@@ -48,33 +41,7 @@ $('#myModal').on('shown.bs.modal', function () {
                             Download
                         </button>
                         </form>
-
                         &nbsp;&nbsp;
-
-
-
-
-                        <div class="modal" tabindex="-1">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Modal title</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p>Modal body text goes here.</p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                        <button type="button" class="btn btn-primary">Save changes</button>
-                                    </div>
-                                    </div>
-                                </div>
-                            </div>
-
-
                         <form action="{{route('product.upload')}}" method="post">
                             @csrf
                             <button  type="submit" id="sub" class=" btn btn-danger btn-sm float-right">
@@ -84,8 +51,10 @@ $('#myModal').on('shown.bs.modal', function () {
                         </form>
                         @endif
                     </div>
-
-              
+                    
+                    
+                    
+                    
                     <!-- /.card-header -->
                     <div class="card-body">
                         <table id="productTable" class="table table-sm table-bordered table-striped display responsive nowrap"
@@ -114,7 +83,5 @@ $('#myModal').on('shown.bs.modal', function () {
 <!-- /.content -->
 @endsection
 @section('js')
-
 <script src="{{asset('js/Modules/Product/product_index.js')}}"></script>
-
 @endsection

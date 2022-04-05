@@ -3,7 +3,7 @@
 @endsection
 @section('content')
 <!-- Main content -->
-          
+
 <!-- Content Header (Page header) -->
 <div class="content-header">
     <div class="container-fluid">
@@ -16,8 +16,8 @@
                     echo $a[0];
                     echo "-";
                     echo $a[2];
-                @endphp 
-            </h1>
+                @endphp
+                </h1>
             </div><!-- /.col -->
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
@@ -106,13 +106,13 @@
                                             
                                         </td>
                                         <td>
-                                            <input type="number" name="unit_price[]" id="unit_price" value="{{ $prod->unit_price }}">
+                                            <input type="number" name="unit_price[]" id="unit_price" value="{{ $prod->unit_price }}" step=".01">
                                             </td>
-                                        <?php $subtotal = $prod->del_qnt * (int)$prod->unit_price ?>
+                                        <?php $subtotal = $prod->del_qnt * (float)$prod->unit_price ?>
                                         <td class="text-right" id="qt" onkeyup="quantity_calculate(this);">{{ $subtotal }}</td>
                                     </tr>
                                     <?php
-                                        $total += ($prod->del_qnt * (int)$prod->unit_price);
+                                        $total += ($prod->del_qnt * (float)$prod->unit_price);
                                     ?>
                                     @endforeach
                                 </tbody>

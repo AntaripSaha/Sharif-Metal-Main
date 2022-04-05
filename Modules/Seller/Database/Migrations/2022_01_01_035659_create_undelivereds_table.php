@@ -23,7 +23,6 @@ class CreateUndeliveredsTable extends Migration
             $table->string('production_price');
             $table->unsignedBigInteger('req_id');
             $table->integer('del_qnt')->default(0);
-            $table->boolean('wasted')->default(0);
             $table->boolean('is_approved')->default(0);
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
             $table->foreign('req_id')->references('id')->on('sell_requests')->onDelete('cascade');

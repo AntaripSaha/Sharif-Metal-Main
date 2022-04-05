@@ -42,15 +42,15 @@ $(function () {
       getAjaxModal(url);
   });
 
-  /*Edit Lot data */
-  $('.table').on('click', '.edit-tr', function(){
-      "use strict";
-      var userID  = this.id.replace('edit-tr-', '');
-      var url= baseUrl+"users/edit/"+userID;
-      getAjaxModal(url);
-  });
-  
-  $('.table').on('click', '.changePassword-tr', function (){
+    /*Edit Lot data */
+      $('.table').on('click', '.edit-tr', function(){
+          "use strict";
+          var userID  = this.id.replace('edit-tr-', '');
+          var url= baseUrl+"users/edit/"+userID;
+          getAjaxModal(url);
+      });
+
+    $('.table').on('click', '.changePassword-tr', function (){
         "use strict"
         var userID = this.id.replace('changePassword-tr-','');
         var url = baseUrl + "users/change_user_password/"+userID;
@@ -62,24 +62,8 @@ $(function () {
     "use strict";
     var userID = this.id.replace('delete-tr-', '');
     var currentRow=$(this).closest("tr");
-    var name= currentRow.find("td:eq(1)").text();
-    var content = 'Delete '+name+'?';
-    var confirmtext = 'Delete This User';
-    var confirmCallback=function(){
-    var requestCallback=function(response){
-        if(response.status == 'success') {
-            toastr.success('User Deleted Successfully', 'Success');
-            table.ajax.reload( null, false ); 
-            }else{
-            toastr.error('You can not Delete this Bank.You have Transactions.','Error');
-            }
-        }
+    console.log(userID);
 
-        var url= baseUrl+"users/delete/"+userID;
-        console.log(url);
-        ajaxGetRequest(url,requestCallback);
-    }
-    confirmAlert(confirmCallback,content,confirmtext)
 });
 
 });

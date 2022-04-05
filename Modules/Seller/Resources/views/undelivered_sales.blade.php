@@ -40,13 +40,7 @@
 
                         {{-- All Undelivered Product Reports Button --}}
                         <a href="{{ route('all_undelivered_products') }}">
-                            <button class="btn btn-primary btn-sm float-right" style="margin: 3px;">Product Reports</button>
-                        </a>
-                        <a href="{{ route('all_customer') }}">
-                            <button class="btn btn-info btn-sm float-right" style="margin: 3px;">Party Reports</button>
-                        </a>
-                        <a href="#">
-                            <button class="btn btn-success btn-sm float-right" style="margin: 3px;">Seller Reports</button>
+                            <button class="btn btn-primary btn-sm float-right">All Undelivered Product Reports</button>
                         </a>
                     </div>
                     <!-- /.card-header -->

@@ -116,11 +116,11 @@
 
         {{-- Footer --}}
         <div class="ftr">
-            <?php
-                $date = date('d/m/Y');
-                $time = date('h:i:A');
-                echo "Print Date & Time : ".$date." , ".$time; 
-            ?>
+            // <?php
+            //     $date = date('d/m/Y');
+            //     $time = date('h:i:A');
+            //     echo "Print Date & Time : ".$date." , ".$time; 
+            // ?>
         </div>
     </div>
 </body>

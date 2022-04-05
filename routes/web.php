@@ -42,4 +42,3 @@ Auth::routes();
 Route::get('/dashboard', 'HomeController@index')->name('dashboard');
 Route::get('country-code/{country_code}','BaseController@ajaxGetCountryCode')->name('ajaxGetCountryCode');
 Route::get('/dashboard/db-download','HomeController@createDbBackup')->name('db.download');
-// Route::get('/dashboard/db-delete','HomeController@db_delete')->name('db.delete');

@@ -99,8 +99,7 @@
                                         echo "-";
                                         echo $a[2];
                                     @endphp
-                                    </td>
-                                    <td>{{ $sell_request->del_date }}</td>
+                                    </td>                                    <td>{{ $sell_request->del_date }}</td>
                                     <td>{{ $sell_request->customer->customer_id }}</td>
                                     <td>{{ $sell_request->customer->customer_name }}</td>
                                     <td>

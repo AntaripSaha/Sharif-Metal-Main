@@ -12,10 +12,7 @@ class Undelivered extends Model
     {
         return $this->belongsTo('\Modules\Product\Entities\Product','product_id','id');        
     }
-    public function customer()
-    {
-        return $this->belongsTo('\Modules\Customer\Entities\Customer','req_id','id');
-    }
+
     public static function createProductDel($requestData)
     {
         try{

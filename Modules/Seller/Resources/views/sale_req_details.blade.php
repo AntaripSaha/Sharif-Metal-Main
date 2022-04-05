@@ -1,4 +1,4 @@
-    <!-- Main content -->
+<!-- Main content -->
 
 <!-- Content Header (Page header) -->
 <div class="content-header">
@@ -22,7 +22,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header card_buttons">
-                    @if(auth('web')->user()->role_id == 18 || auth('web')->user()->role_id == 9 || auth('web')->user()->id == 48)
+                    @if(auth('web')->user()->role_id == 18 || auth('web')->user()->role_id == 9 || auth('web')->user()->id == 48 || auth('web')->user()->id == 122 )
                     <h3 class="card-title"> <a 
                     @if($cus_id->is_rejected == false)
                     href="{{ route('seller.index') }}"
@@ -96,11 +96,11 @@
                                     <!-- Print Hidden Sale Requision ID -->
                                     <input type="hidden" id="sale_requisition_id" value="{{ $sale_requisition_id }}">
                                 </div>
-                                @if(auth('web')->user()->role_id == 9 || auth('web')->user()->id == 48)
+                                @if(auth('web')->user()->role_id == 9 || auth('web')->user()->id == 48 || auth('web')->user()->id == 122 )
                                 <div class="col-sm-1">
                                     <button class="btn btn-dark btn-sm" id="due_amount_save">Save</button>
                                 </div>
-                                    @endif
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -232,7 +232,7 @@
                         </div>
                         
                         
-                        @if(auth('web')->user()->role_id == 18 || auth('web')->user()->role_id == 9 || auth('web')->user()->id == 48)
+                        @if(auth('web')->user()->role_id == 18 || auth('web')->user()->role_id == 9 || auth('web')->user()->id == 48 || auth('web')->user()->id == 122 )
                         
                             @if($cus_id->is_rejected == false)
                                 <div class="approve_req">

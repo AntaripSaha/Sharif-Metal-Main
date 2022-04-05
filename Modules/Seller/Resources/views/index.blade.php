@@ -39,6 +39,7 @@
                             class="table table-sm table-bordered table-striped display responsive nowrap" width="100%">
                             <thead>
                                 <tr>
+                                    <th>Serial</th>
                                     <th>Request ID</th>
                                     <th>RequestDate</th>
                                     <th>Party Name</th>

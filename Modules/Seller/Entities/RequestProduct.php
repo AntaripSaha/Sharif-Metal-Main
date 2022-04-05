@@ -12,7 +12,7 @@ class RequestProduct extends Model
     {
         return $this->belongsTo('\Modules\Product\Entities\Product','product_id','id');        
     }
-  
+
     public static function createProductReq($requestData)
     {
         try{

@@ -13,7 +13,7 @@
                     echo "-";
                     echo $a[2];
                 @endphp
-            </h1>
+                </h1>
             </div><!-- /.col -->
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">

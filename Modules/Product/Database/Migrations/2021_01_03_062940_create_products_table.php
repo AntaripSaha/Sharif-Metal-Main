@@ -33,6 +33,7 @@ class CreateProductsTable extends Migration
             $table->unsignedBigInteger('supplier_id')->nullable();
             $table->unsignedBigInteger('company_id')->nullable();
             $table->boolean('status')->default('1');
+            $table->integer('wasted')->default('1');
             $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('cascade');
             $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
             $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');

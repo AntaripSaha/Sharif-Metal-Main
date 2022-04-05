@@ -11,7 +11,7 @@ $(function () {
           {data: 'customer.customer_name', name: 'customer.customer_name'},
           {data: 'v_date', name: 'v_date'},
           {data: 'del_date', name: 'del_date'},
-          {data: 'amount', name: 'amount'},
+          {data: 'amount', name: 'amount'}
           {data: 'action', name: 'action'}
           ],
           columnDefs: [

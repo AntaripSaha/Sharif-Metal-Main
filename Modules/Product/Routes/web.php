@@ -32,7 +32,7 @@ Route::prefix('product')->group(function() {
     Route::get('/reports', 'ProductController@productReports')->name('product.reports'); 
     Route::get('/print_product_report', 'ProductController@printProductReport')->name('product.print_product');
     Route::get('/product_searching', 'ProductController@productSearching')->name('product.product_searching');
-
+    
     //product Downloads
     Route::any('/product_download', 'ProductController@allDownload')->name('product.download');
     Route::any('/product_upload', 'ProductController@uploader')->name('product.upload');

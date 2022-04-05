@@ -40,7 +40,7 @@ class CreateSellRequestsTable extends Migration
             $table->string('deliv_pname')->nullable();
             $table->string('remarks')->nullable(); 
             $table->string('gift')->nullable(); 
-            $table->integer('fully_delivered')->default(0);
+            $table->integer('fully_delivered')->default(0); 
             $table->boolean('wasted')->nullable(); 
             $table->integer('send_bill')->default(0);
             $table->integer('due_amount')->nullable();

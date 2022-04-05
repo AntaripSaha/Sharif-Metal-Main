@@ -71,21 +71,24 @@
                                 </tbody>
                             </table>
                             <button class="btn btn-md btn-success" id="re_order">Re Order</button>
-
-                            @if(Auth::user()->role->id == 18)
-                                <form action="{{route('undelivered.sales.delete',$req_id)}}">
-                                    <button type="submit" class="btn btn-md btn-danger" style="margin:20px;position:relative;top:-58px;left: 215px;">Delete</button>
-                                </form>
-                            @endif 
+                            
+                            <!-- For Challan User -->
+                            <!--@if(Auth::user()->role->id == 18)-->
+                            <!--    <form action="{{route('undelivered.sales.delete',$req_id)}}">-->
+                            <!--        <button type="submit" class="btn btn-md btn-danger" style="margin:20px;position:relative;top:-58px;left: 215px;">Delete</button>-->
+                            <!--    </form>-->
+                            <!--@endif -->
+                            <!-- For Office Admin -->
                             @if(Auth::user()->role->id == 9)
                                 <form action="{{route('undelivered.sales.delete',$req_id)}}">
                                     <button type="submit" class="btn btn-md btn-danger" style="margin:20px;position:relative;top:-58px;left: 80px;">Delete</button>
                                 </form>
                             @endif 
                             
+                            
                             <!-- Only For Challan User -->
                             @if( Auth::user()->role->id == 18 ) 
-                            <a href="{{ route('seller.undelivered_details.approve',$req_details->id) }}" class="btn btn-md btn-success" style="margin:20px;position:relative;top:-136px;left: 80px;">Approve Order</a>
+                            <a href="{{ route('seller.undelivered_details.approve',$req_details->id) }}" class="btn btn-md btn-success">Approve Order</a>
                             @endif
                         </div>
                     </div>

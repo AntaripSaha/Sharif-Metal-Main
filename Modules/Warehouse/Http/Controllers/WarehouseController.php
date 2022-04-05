@@ -28,6 +28,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Modules\Seller\Entities\Undelivered;
 
+
 class WarehouseController extends BaseController
 {
     /**
@@ -283,7 +284,6 @@ class WarehouseController extends BaseController
 
     public function prod_requests(Request $request)
     {
-    
         if(!$this->user->can('view_prodreq',app('Modules\Warehouse\Entities\Warehouse'))){
             return redirect()->route('users.index')->with('flash',array('status'=>'error','message'=>'permission denied'));
         }
@@ -404,13 +404,14 @@ class WarehouseController extends BaseController
         
         if( $prod_id ){
             $asked_q = RequestProduct::select('qnty')->where('product_id',$prod_id->id)->where('req_id',$req_id)->first();
+        
             $req_qnt = 0;
             if( $asked_q ){
                 $req_qnt = $asked_q->qnty;
                 if ($prod_id != null) {
                     return $qnt = WarehouseProducts::select('stck_q','sell_q')->where('product_id',$prod_id->id)->where('warehouse_id',$ware_id)->first();
                     if ($qnt != null) {
-                        $qnty = $qnt->stck_q - $qnt->sell_q;
+                        $qnty = $qnt->stck_q -$qnt->sell_q;
                         $pro_id = $prod_id->id;
                         $prod_name = $prod_id->product_name;
                         $bar_code = $prod_id->product_id;
@@ -449,8 +450,10 @@ class WarehouseController extends BaseController
         return $data;
     }
     
-    public function deliver(Request $request)
+    
+    public function old_deliver(Request $request)
     {
+
         try{
             $deliver_products=[];
             $request_id = $request->request_id;
@@ -459,11 +462,284 @@ class WarehouseController extends BaseController
             $gift = $request->gift;
 
             if ($request->com_id && $request->product_id) {
-                
                 //Combo product Insert OUT//
                 foreach ($data['com_id'] as $key => $value) {
-                   
+                    //Product To Deliver and it's Quantity
+                    $prod_info = ['product_id'=>$data['com_outproduct_id'][$key],'qnt'=>$data['com_out_qnt'][$key]];
+                    array_push($deliver_products, $prod_info);
+                    //Warehouse Insert Combo Product//
+                    $comout= $data['com_out_qnt'][$key];
+                    $n_data['product_id'] = $data['com_id'][$key];
+                    $n_data['out_qnt'] = $data['com_out_qnt'][$key];
+                    $n_data['warehouse_id'] = $data['com_warehouse_id'][$key];
+                    $n_data['company_id']=$data['company_id'];
+                    $n_data['v_date']=$data['v_date'];
+                    $n_data['chalan_no']=$data['chalan_no'];
+                    $n_data['created_by']=$this->user->id;
+                    $n_data['del_date'] = $edate;
+                    WarehouseInserts::insertware_product($n_data);
+                    //Update the stock//
+                    $product_qnt= WarehouseProducts::select('sell_q','id')->where('warehouse_id',$data['com_warehouse_id'][$key])->where('product_id',$data['com_id'][$key])->first();
+                    $id = $product_qnt->id;
+                    $out = $data['com_out_qnt'][$key];
+                    $new_q= $product_qnt->sell_q + $out;
+                    WarehouseProducts::where('id',$id)->update(['sell_q'=>$new_q]);
 
+                    $combo_products = Product::select('combo_ids')->where('id',$data['com_id'][$key])->first();
+                    $c_p = $combo_products->combo_ids;
+                    $ccp = explode('_', $c_p);
+                    $barcode = Product::select('product_id')->where('id',$data['com_outproduct_id'][$key])->first();;
+                    $index = array_search($barcode->product_id,$ccp);
+                    if($index !== FALSE){
+                        unset($ccp[$index]);
+                    }
+                    foreach ($ccp as $key => $value) {
+                        $prodc_id = Product::select('id')->where('product_id',$value)->first();
+                        $product_qnt= WarehouseProducts::select('stck_q','id')->where('product_id',$prodc_id->id)->first();
+                        $id = $product_qnt->id;
+                        $new_q= $product_qnt->stck_q + $comout;
+                        WarehouseProducts::where('id',$id)->update(['stck_q'=>$new_q]);
+                    }
+                }
+                
+                
+                //Product Insert and Update from Stock//
+                foreach ($data['product_id'] as $key => $value) {
+
+                    $prod_info = ['product_id'=>$data['product_id'][$key],'qnt'=>$data['out_qnt'][$key]];
+                    array_push($deliver_products, $prod_info);
+
+                    $n_data['product_id'] = $data['product_id'][$key];
+                    $n_data['out_qnt'] = $data['out_qnt'][$key];
+                    $n_data['warehouse_id'] = $data['warehouse_id'][$key];
+                    $n_data['company_id']=$request->user()->company_id;
+                    $n_data['v_date']=$data['v_date'];
+                    $n_data['chalan_no']=$data['chalan_no'];
+                    $n_data['created_by']=$this->user->id;
+                    $n_data['del_date'] = $edate;
+                    WarehouseInserts::insertware_product($n_data);
+                }
+                
+                
+                
+                foreach ($data['product_id'] as $key => $value) {
+                    $product_qnt= WarehouseProducts::select('sell_q','id')->where('warehouse_id',$data['warehouse_id'][$key])->where('product_id',$data['product_id'][$key])->first();
+                    $id = $product_qnt->id;
+                    $out = $data['out_qnt'][$key];
+                    $new_q= $product_qnt->sell_q + $out;
+                    WarehouseProducts::where('id',$id)->update(['sell_q'=>$new_q]);
+                }
+                //Update the delivery amount//
+                foreach ($deliver_products as $key => $del_product) {
+                    $pid=$del_product['product_id'];
+                    $q = $del_product['qnt'];
+                    $prod_delq = RequestProduct::select('del_qnt','id')->where('req_id',$request_id)->where('product_id',$pid)->first();
+                    $up_q = $prod_delq->del_qnt + $q;
+                    RequestProduct::where('id',$prod_delq->id)->update(['del_qnt'=>$up_q]);
+                }
+                //Deliver amount Update in Sell Request//
+                $pr_price = RequestProduct::with('products')->where('req_id',$request_id)->get();
+                $sell_req = SellRequest::where('id',$request_id)->first();
+                $del_amount = 0;
+                $del_discount = 0;
+                foreach ($pr_price as $product) {
+                    $price = $product->products->price;
+                    if ($product->prod_disc != null) {
+                        $prod_dprice = ($product->del_qnt * $price)* $product->prod_disc/100;
+                        $del_discount = $del_discount + $prod_dprice;
+                        $prod_qprice = ($product->del_qnt * $price) - $prod_dprice;
+                        $del_amount = $del_amount + $prod_qprice;
+                    }else{
+                        $prod_qprice = $product->del_qnt*$price;
+                        $del_amount = $del_amount + $prod_qprice;
+                        $del_discount = null;
+                    }
+                }
+                if ($sell_req->amount == $del_amount) {
+                    $fully_delivered = 1;
+                }else{
+                    $fully_delivered = 0;
+                }
+                SellRequest::where('voucher_no',$data['chalan_no'])->update(
+                    [
+                        'is_delivered'=> 1,'del_date'=>$edate,'del_amount'=>$del_amount,'del_discount'=>$del_discount,
+                        'transp_name'=>$data['transp_name'],
+                        'deliv_pname'=>$data['deliv_pname'],
+                        'gift' => $data['gift'],
+                        'fully_delivered'=>$fully_delivered,
+                    ]
+                );
+                //Inventory Credit And Customer Debit//
+                $coaid = Accounts::select('HeadCode')->where('customer_id',$sell_req->customer_id)->first();
+                $cusinfo = Customer::where('id',$sell_req->customer_id)->first();
+                $cus_coa = $coaid->HeadCode;
+                $IsPosted=1;
+                $IsAppove=1;
+                $created_by = $this->user->id;
+                $updated_by = $this->user->id;
+                //Customer debit for Product Value
+                $customerdebit = array(
+                    'VNo'            =>  $data['chalan_no'],
+                    'Vtype'          =>  'INV',
+                    'VDate'          =>  $data['v_date'],
+                    'COAID'          =>  $cus_coa,
+                    'Narration'      =>  'Customer debit For Invoice No -  '.$request_id.' Customer '.$cusinfo->customer_name,
+                    'Debit'          =>  $del_amount,
+                    'Credit'         =>  0,
+                    'IsPosted'       =>  $IsPosted,
+                    'created_by'     =>  $created_by,
+                    'updated_by'     =>  $updated_by,
+                    'company_id'     =>  $sell_req['company_id'],
+                    'IsAppove'       =>  $IsAppove
+                );
+                Transactions:: createTransaction($customerdebit);
+                ///Inventory credit
+                $coscr = array(
+                    'VNo'            =>  $data['chalan_no'],
+                    'Vtype'          =>  'INV',
+                    'VDate'          =>  $data['v_date'],
+                    'COAID'          =>  10301,
+                    'Narration'      =>  'Inventory credit For Invoice No'.$request_id,
+                    'Debit'          =>  0,
+                    'Credit'         =>  $del_amount,//Deliver Amount
+                    'IsPosted'       =>  $IsPosted,
+                    'created_by'     =>  $created_by,
+                    'updated_by'     =>  $updated_by,
+                    'company_id'     =>  $sell_req['company_id'],
+                    'IsAppove'       =>  $IsAppove
+                );
+                Transactions:: createTransaction($coscr);
+                return response()->json(['status'=>'success','data'=>$request_id], 200);
+                exit();
+            }else{
+                $sell_req = SellRequest::where('id',$request_id)->first();
+                foreach ($data['product_id'] as $key => $value) {
+                    //Product To Deliver and it's Quantity
+                    $prod_info = ['product_id'=>$data['product_id'][$key],'qnt'=>$data['out_qnt'][$key]];
+                    array_push($deliver_products, $prod_info);
+
+                    $n_data['product_id'] = $data['product_id'][$key];
+                    $n_data['out_qnt'] = $data['out_qnt'][$key];
+                    $n_data['warehouse_id'] = $data['warehouse_id'][$key];
+                    $n_data['company_id']=$sell_req['company_id'];
+                    $n_data['v_date']=$data['v_date'];
+                    $n_data['chalan_no']=$data['chalan_no'];
+                    $n_data['created_by']=$this->user->id;
+                    $n_data['del_date'] = $edate;
+                    WarehouseInserts::insertware_product($n_data);
+                }
+                foreach ($data['product_id'] as $key => $value) {
+                    $product_qnt= WarehouseProducts::select('sell_q','id')->where('warehouse_id',$data['warehouse_id'][$key])->where('product_id',$data['product_id'][$key])->first();
+                    $id = $product_qnt->id;
+                    $out = $data['out_qnt'][$key];
+                    $new_q= $product_qnt->sell_q + $out;
+                    WarehouseProducts::where('id',$id)->update(['sell_q'=>$new_q]);
+                }
+                //Update the delivery amount//
+                foreach ($deliver_products as $key => $del_product) {
+                    $pid=$del_product['product_id'];
+                    $q = $del_product['qnt'];
+                    $prod_delq = RequestProduct::select('del_qnt','id')->where('req_id',$request_id)->where('product_id',$pid)->first();
+                    $up_q = $prod_delq->del_qnt + $q;
+                    RequestProduct::where('id',$prod_delq->id)->update(['del_qnt'=>$up_q]);
+                }
+                //Deliver amount Update//
+                $pr_price = RequestProduct::with('products')->where('req_id',$request_id)->get();
+                $del_amount = 0;
+                $del_discount = 0;
+                foreach ($pr_price as $product) {
+                    $price = $product->products->price;
+
+                    if ($product->prod_disc != null) {
+                        $prod_dprice = ($product->del_qnt * $price)* $product->prod_disc/100;
+                        $del_discount = $del_discount + $prod_dprice;
+                        $prod_qprice = ($product->del_qnt * $price) - $prod_dprice;
+                        $del_amount = $del_amount + $prod_qprice;
+                    }else{
+                        $prod_qprice = $product->del_qnt*$price;
+                        $del_amount = $del_amount + $prod_qprice;
+                        $del_discount = null;
+                    }
+                }
+                if ($sell_req->sale_disc !== null) {
+                    $sale_disc = $del_amount * ($sell_req->sale_disc/100);
+                    $del_discount = $del_discount + $sale_disc;
+                    $del_amount = $del_amount-$sale_disc;
+                }
+                if ($sell_req->amount == $del_amount) {
+                    $fully_delivered = 1;
+                }else{
+                    $fully_delivered = 0;
+                }
+                SellRequest::where('voucher_no',$data['chalan_no'])->update(['is_delivered'=> 1,'del_date'=>$edate,'del_amount' =>$del_amount,'del_discount' =>$del_discount,'transp_name'=>$data['transp_name'],'deliv_pname'=>$data['deliv_pname'],'fully_delivered'=>$fully_delivered,'gift' => $data['gift']]);
+                //Inventory Credit And Customer Debit//
+                $coaid = Accounts::select('HeadCode')->where('customer_id',$sell_req->customer_id)->first();
+                $cusinfo = Customer::where('id',$sell_req->customer_id)->first();
+                $cus_coa = $coaid->HeadCode;
+                $IsPosted=1;
+                $IsAppove=1;
+                $created_by = $this->user->id;
+                $updated_by = $this->user->id;
+                //Customer debit for Product Value
+                $customerdebit = array(
+                    'VNo'            =>  $data['chalan_no'],
+                    'Vtype'          =>  'INV',
+                    'VDate'          =>  $data['v_date'],
+                    'COAID'          =>  $cus_coa,
+                    'Narration'      =>  'Customer debit For Invoice No -  '.$request_id.' Customer '.$cusinfo->customer_name,
+                    'Debit'          =>  $del_amount,
+                    'Credit'         =>  0,
+                    'IsPosted'       =>  $IsPosted,
+                    'created_by'     =>  $created_by,
+                    'updated_by'     =>  $updated_by,
+                    'company_id'     =>  $sell_req['company_id'],
+                    'IsAppove'       =>  $IsAppove
+                );
+                Transactions:: createTransaction($customerdebit);
+                ///Inventory credit
+                $coscr = array(
+                    'VNo'            =>  $data['chalan_no'],
+                    'Vtype'          =>  'INV',
+                    'VDate'          =>  $data['v_date'],
+                    'COAID'          =>  10301,
+                    'Narration'      =>  'Inventory credit For Invoice No'.$request_id,
+                    'Debit'          =>  0,
+                    'Credit'         =>  $del_amount,//Deliver Amount
+                    'IsPosted'       =>  $IsPosted,
+                    'created_by'     =>  $created_by,
+                    'updated_by'     =>  $updated_by,
+                    'company_id'     =>  $sell_req['company_id'],
+                    'IsAppove'       =>  $IsAppove
+                );
+                Transactions:: createTransaction($coscr);
+                
+                if( RequestProduct::with('products')->where('req_id',$data['request_id'])->where('qnty','!=','del_qnt')->select('id')->count() < 1 ) {
+                    $sell_request = SellRequest::where('voucher_no',$data['chalan_no'])->first();
+                    $sell_request->fully_delivered = true;
+                    $sell_request->save();
+                }
+                
+                return response()->json(['status'=>'success','data'=>$data['chalan_no']], 200);
+            }
+        }catch(\Exception $e){
+                return response()->json(['status'=>$e->getMessage()], 500);
+        }
+    }
+    
+    
+    //deliver start
+        public function deliver(Request $request)
+    {
+        try{
+            $deliver_products=[];
+            $request_id = $request->request_id;
+            $edate = date('Y-m-d');
+            $data = $request->all();
+            $gift = $request->gift;
+            
+            if ($request->com_id && $request->product_id) {
+                //Combo product Insert OUT//
+                foreach ($data['com_id'] as $key => $value) {
                     //Product To Deliver and it's Quantity
                     $prod_info = ['product_id'=>$data['com_outproduct_id'][$key],'qnt'=>$data['com_out_qnt'][$key]];
                     array_push($deliver_products, $prod_info);
@@ -731,6 +1007,9 @@ class WarehouseController extends BaseController
                 return response()->json(['status'=>$e->getMessage()], 500);
         }
     }
+
+    //deliver end
+    
     public function combo_prod($id,$ware_id)
     {
         $products = Product::select('id')->where('combo_ids','like','%'.$id.'%')->get();
@@ -743,9 +1022,8 @@ class WarehouseController extends BaseController
     }
 
 
-    public function old_print_chalan(Request $request, $chalan_no)
+    public function off_29_01_22_print_chalan($chalan_no)
     {
-        // return $request->all();
         $pdf_style = '<style>
             *{
                 font-size:15px;
@@ -766,7 +1044,8 @@ class WarehouseController extends BaseController
         $name = "Challan".$chalan->voucher_no.".pdf";
         return $pdf->stream($name, array("Attachment" => false));
     }
-    public function print_chalan(Request $request, $chalan_no)
+    
+        public function print_chalan(Request $request, $chalan_no)
     {
         // return $request->all();
         $pdf_style = '<style>

@@ -13,7 +13,7 @@
                     <!--------success messege-------->
                     @if(Session::has('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        Request has been Submitted .
+                        Request has been Rejected .
                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                           <span aria-hidden="true">&times;</span>
                         </button>
@@ -59,7 +59,6 @@
                                 <div class="form-group col-md-4">
                                     <button class="btn btn-info btn-sm" onclick="datesearch()">Search</button>
                                     <button class="btn btn-success btn-sm" onclick="refresh()">Refresh</button>
-                                  
                                 </div>
                             </div>
                         </div>
@@ -129,7 +128,6 @@ aria-hidden="true">
     function refresh(){
         location.reload();
     }
-  
 </script>
 <script src="{{asset('js/Modules/Sale/manage_sales.js')}}"></script>
 @endsection

@@ -75,19 +75,20 @@
                         <td>{{ $key + 1 }}</td>
                         <td>{{ $sell_request->voucher_no }}</td>
                         <td>{{ $sell_request->v_date }}</td>
-                        <td>
-                                    @php 
-                                        $str = $sell_request->req_id;
-                                        $cha = $sell_request->voucher_no;
-                                        $a = explode("-",$str);
-                                        $b = explode("-", $cha);
-                                        echo $a[0];
-                                        echo "-";
-                                        echo $b[0];
-                                        echo "-";
-                                        echo $a[2];
-                                    @endphp
-                                    </td>                        <td>{{ $sell_request->del_date }}</td>
+                        <td> 
+                            @php 
+                                $str = $sell_request->req_id;
+                                $cha = $sell_request->voucher_no;
+                                $a = explode("-",$str);
+                                $b = explode("-", $cha);
+                                echo $a[0];
+                                echo "-";
+                                echo $b[0];
+                                echo "-";
+                                echo $a[2];
+                            @endphp
+                        </td>
+                        <td>{{ $sell_request->del_date }}</td>
                         <td>{{ $sell_request->customer->customer_id }}</td>
                         <td>{{ $sell_request->customer->customer_name }}</td>
                         <td>

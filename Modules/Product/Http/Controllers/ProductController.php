@@ -293,6 +293,8 @@ class ProductController extends BaseController
         return view('product::productReportView', compact('products'));
         
     }
+    
+//Excel Download Upload Start
 
     public function allDownload(){
         
@@ -306,9 +308,14 @@ class ProductController extends BaseController
 
     public function uploadProducts(Request $request)
     {
+       
     
         Excel::import(new ProductImport, $request->file('file'));
         return redirect()->back()->with('success', 'File Uplod Completed');
          
     }
+
+//Excel Download Upload End
+
+
 }

@@ -3,17 +3,10 @@
 <html>
 
 <head>
-<style>
-   .pagenum:before {
-        content: counter(page);
-    }
-</style>
     {!! isset($pdf_style) ? $pdf_style : '' !!}
 </head>
 
 <body style="width: 90%;margin: auto;">
-<span class="pagenum"></span>
-
     <!-- First Print Copy Start -->
     <div class="card">
         <div class="card-header">
@@ -46,7 +39,7 @@
             
             <!-- PartyName Start -->
             <div class="col-md-6" style="margin-top: 8px">
-                <span style="text-align: left;float: left;font-size: 16px; width: 100%">Party Address
+                <span style="text-align: left;float: left;font-size: 15px; width: 100%">Party Address
                     <span style="margin-left:2px; font-weight: bolder;">:</span> {{$sale_request->pname}} </span>
                 <br>
             </div>
@@ -227,8 +220,8 @@
                                             style="font-size: 14px;">{{ $sale_request->amount }}</span></td>
                                 </tr>
 
-                                        <tfoot>
-                                            <div class="col-md-12" style="position: fixed; bottom: 80px; left:0px; right:0px; ">
+                                        <tfoot style="position: fixed;  bottom:125px; left:0px; right:0px; ">
+                                            <div class="col-md-12" style="position: fixed; bottom:70px; left:0px; right:0px; ">
                                                 <div style="float: left;">
                                                     <br><br><br>
                                                     <span style="font-size: 16px; float: left;margin-top: 30px;border-top: 2px solid #000;"><b>Approved
@@ -287,15 +280,14 @@
             
             <!-- PartyName Start -->
             <div class="col-md-6" style="margin-top: 8px">
-                <span style="text-align: left;float: left;font-size: 16px; width: 100%">Party Address
+                <span style="text-align: left;float: left;font-size: 15px; width: 100%">Party Address
                     <span style="margin-left:2px; font-weight: bolder;">:</span> {{$sale_request->pname}} </span>
                 <br>
             </div>
             <!-- PartyName  End -->
-          
             
             <!-- seller name Start -->
-            <div class="col-md-6" style="margin-top:  8px">
+            <div class="col-md-6" style="margin-top: 8px">
                 <span style="text-align: left;float: left;font-size: 16px; width: 100%">S/E Name
                     <span style="margin-left:25px; font-weight: bolder;">:</span> {{$sale_request->seller->name}} </span>
                 <br>
@@ -423,6 +415,5 @@
     </div>
 </body>
 <!-- Second Print Copy End -->
-
 
 </html>

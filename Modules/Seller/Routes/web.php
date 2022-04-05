@@ -43,44 +43,9 @@ Route::prefix('seller')->group(function() {
     Route::get('/undelivered_sales', 'SellerController@undelivered_sales')->name('seller.undelivered_sales');
     // All all_undelivered_products Route
     Route::get('/all_undelivered_products_report', 'SellerController@all_undelivered_products')->name('all_undelivered_products');
-    Route::get('/all_undelivered_products_report_result', 'SellerController@undelivered_product_search')->name('all_undelivered_products_report_result');
     Route::get('/undelivered_product_search', 'SellerController@undelivered_product_search')->name('undelivered_product_search');
     Route::get('/undelivered_product_print', 'SellerController@undelivered_product_print')->name('undelivered_product_print');
     Route::any('/undelivered_delete/{id}', 'SellerController@undelivered_sales_delete')->name('undelivered.sales.delete');
-
-
-
-
-
-
-
-
-
-    // Undelivered Customer Wise Reports.... 
-    Route::get('/all_undelivered_customer_report', 'SellerController@all_undelivered_customer')->name('all_undelivered_customer');
-    Route::get('/all_customer', 'SellerController@all_customer')->name('all_customer');
-    Route::get('/customer_report/{id}', 'SellerController@customer_report')->name('customer_report');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     Route::get('/undelivered_details/{id}', 'SellerController@undelivered_details')->name('seller.undelivered_details');
@@ -110,12 +75,9 @@ Route::prefix('seller')->group(function() {
     //Change Password Route Start
     Route::get("/changepassword/{id}","SellerController@change_password_page")->name("seller.change.password.page");
     Route::post("/changepassword/{id}","SellerController@change_password")->name("seller.change.password");
-
+    
+    Route::any('/get_customer/{id}', 'SellerController@get_customer')->name('seller.get_customer');
+        
     // Null Price Update in SellRequest
     Route::any('/price/update', 'SellerController@price_update')->name('price.update'); 
-
-    // Null approval Update in SellRequest
-    Route::any('/approval/update', 'SellerController@approval_update')->name('approval.update'); 
-    
-   
 });
