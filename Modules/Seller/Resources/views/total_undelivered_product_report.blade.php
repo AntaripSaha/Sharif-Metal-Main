@@ -133,6 +133,7 @@
                                 @endphp
                                 @foreach ($undelivered_products as $undelivered)
                                 @if ($undelivered->undelivered_product != 0)
+                                @if($undelivered->undelivered_product >= 0)
                                 <tr class="text-center">
                                     <td>{{ $i }}</td>
                                     <td>{{ $undelivered->products->product_id }}</td>
@@ -141,6 +142,7 @@
                                     <td>{{ $undelivered->products->price }}</td>
                                     <td>{{ $undelivered->products->price * $undelivered->undelivered_product }}</td>
                                 </tr>
+                                @endif
                                 @php
                                 $i++;
                                 $in_total_amount += ($undelivered->products->price * $undelivered->undelivered_product)

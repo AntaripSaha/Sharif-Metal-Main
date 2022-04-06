@@ -1045,7 +1045,7 @@ class WarehouseController extends BaseController
         return $pdf->stream($name, array("Attachment" => false));
     }
     
-        public function print_chalan(Request $request, $chalan_no)
+    public function print_chalan(Request $request, $chalan_no)
     {
         // return $request->all();
         $pdf_style = '<style>

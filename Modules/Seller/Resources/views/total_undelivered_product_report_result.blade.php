@@ -105,27 +105,17 @@
                                 @endphp
                                 @foreach ($undelivered_products as $undelivered)
                                 @if ($undelivered->undelivered_product != 0)
-                                <tr class="text-center">
-                                    <td>{{ $i }}</td>
-                                    <td>{{ $undelivered->products->product_id }}</td>
-                                    <td>{{ $undelivered->products->product_name }}</td>
-                                    <td>{{ $undelivered->products->head_code}}</td>
-
-                                    @if($undelivered->undelivered_product <= 0)
-                                    <td>0</td>
-                                    @else
-                                    <td>{{ $undelivered->undelivered_product }}</td>
-                                    @endif
-                                    
-                                    <td>{{ $undelivered->products->price }}</td>
-
-                                    @if($undelivered->undelivered_product <= 0)
-                                    <td>{{ $undelivered->products->price * 0 }}</td>
-                                    @else
-                                    <td>{{ $undelivered->products->price * $undelivered->undelivered_product }}</td>
-                                    @endif
-
-                                </tr>
+                                @if($undelivered->undelivered_product >= 0)
+                                    <tr class="text-center">
+                                        <td style="text-align: center" width="8%">{{ $i }}</td>
+                                        <td style="text-align: center" width="10%">{{ $undelivered->products->product_id }}</td>
+                                        <td style="text-align: center" width="50%">{{ $undelivered->products->product_name }}</td>
+                                        <td style="text-align: center" width="5%">{{ $undelivered->products->head_code }}</td>
+                                        <td style="text-align: center" width="10%">{{ $undelivered->products->price }}</td>
+                                        <td style="text-align: center" width="10%">{{ $undelivered->undelivered_product }}</td>                            
+                                        <td style="text-align: center" width="12%">{{ $undelivered->products->price * $undelivered->undelivered_product }}</td>
+                                    </tr>
+                                @endif
 
 
                                 <?php 
