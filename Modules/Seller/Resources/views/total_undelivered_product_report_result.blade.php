@@ -6,7 +6,6 @@
     .m-top {
         margin-top: 2rem !important;
     }
-
 </style>
 <section class="content" id="ajaxview">
     <div class="content-header">
@@ -29,14 +28,9 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header card_buttons">
-
                     <form action="{{ route('undelivered_product_search') }}" >
                      @csrf
-                                         
-                                       
-
                             <div class="row">
-                    
                                 <div class="col-sm-3">
                                     <label>Product Name</label>
                                     <select class="form-control-sm form-control js-example-basic-single" name="product_id">
@@ -58,30 +52,22 @@
                                 </div>
 
                                 <div class="col-sm-2">
-                                    <button class="btn btn-info btn-sm m-top" ><i
-                                            class="fas fa-search"></i></button>
-                                    
-                                   
-                               
+                                    <button class="btn btn-info btn-sm m-top" >
+                                        <i class="fas fa-search"></i></button>                                 
                                 </div>
                             </div>
 
                     </form>
-
                     <form action="undelivered_product_print">
                         @csrf
-
-
                         <input type="hidden" name="product_id" id="product_id" value="{{$product_id}}"  >
                         <input type="hidden" name="from_date" id="from_date" value="{{$from_date}}" >
-                        <input type="hidden" name="to_date" id="to_date" value="{{$to_date}}" >
-
-                        
-                        <button type="submit" class="btn btn-primary btn-sm m-top"><i class="fa fa-print"></i><span
-                                                class="ml-1">Print</span></button>
+                        <input type="hidden" name="to_date" id="to_date" value="{{$to_date}}" >                        
+                        <button type="submit" class="btn btn-primary btn-sm m-top">
+                            <i class="fa fa-print"></i>
+                            <span class="ml-1">Print</span>
+                        </button>
                     </form>
-
-
                     </div>
                     <div class="card-body" id="undeliveredProductTable">
                         <table id="productTable"
@@ -97,7 +83,6 @@
                                     <th>Total Amount</th>
                                 </tr>
                             </thead>
-
                             <tbody>
                                 @php
                                 $i = 1;
@@ -116,8 +101,6 @@
                                         <td style="text-align: center" width="12%">{{ $undelivered->products->price * $undelivered->undelivered_product }}</td>
                                     </tr>
                                 @endif
-
-
                                 <?php 
                                 $i++;
                                 if($undelivered->undelivered_product <= 0):
@@ -125,17 +108,10 @@
                                 else:
                                     $in_total_amount += ($undelivered->products->price * $undelivered->undelivered_product);
                                 endif;
-                                ?>
-                              
-                                
-                               
-                               
-
-
+                                ?>                           
                                 @endif
                                 @endforeach
                             </tbody>
-
                             <tfoot>
                                 <tr>
                                     <td colspan="6" class="text-right text-bold"><strong>Total Amount</strong></td>

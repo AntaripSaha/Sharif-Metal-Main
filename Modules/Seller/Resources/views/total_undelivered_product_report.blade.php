@@ -6,7 +6,6 @@
     .m-top {
         margin-top: 2rem !important;
     }
-
 </style>
 <section class="content" id="ajaxview">
     <div class="content-header">
@@ -67,12 +66,7 @@
                         
                     <form action="{{ route('undelivered_product_search') }}" >
                      @csrf
-                                         
-                    
-
-
                             <div class="row">
-                    
                                 <div class="col-sm-3">
                                     <label>Product Name</label>
                                     <select class="form-control-sm form-control js-example-basic-single" name="product_id" id="product_id">
@@ -82,35 +76,24 @@
                                         @endforeach
                                     </select>
                                 </div>
-
                                 <div class="col-sm-3">
                                     <label>From Date</label>
                                     <input type="date" name="from_date" id="from_date" class="form-control form-control-sm">
                                 </div>
-
                                 <div class="col-sm-2">
                                     <label>To Date</label>
                                     <input type="date" name="to_date" id="to_date" class="form-control form-control-sm">
                                 </div>
-
                                 <div class="col-sm-2">
                                     <button type="submit" class="btn btn-info btn-sm m-top" ><i
                                             class="fas fa-search"></i></button>
                                     <button class="btn btn-success btn-sm m-top" onclick="refresh()"><i
                                             class="fas fa-sync-alt"></i></button>
-                                        
                                     <!-- <button  class="btn btn-primary btn-sm m-top"><i class="fa fa-print"></i><span
                                                 class="ml-1">Print</span></button> -->
-                               
                                 </div>
                             </div>
-
-
-
                     </form>
-
-                        
-                        
                     </div>
                     <div class="card-body" id="undeliveredProductTable">
                         <table id="productTable"
@@ -125,7 +108,6 @@
                                     <th>Total Amount</th>
                                 </tr>
                             </thead>
-
                             <tbody>
                                 @php
                                 $i = 1;
@@ -150,7 +132,6 @@
                                 @endif
                                 @endforeach
                             </tbody>
-
                             <tfoot>
                                 <tr>
                                     <td colspan="5" class="text-right text-bold"><strong>Total Amount</strong></td>
