@@ -113,6 +113,39 @@ class SellerController extends BaseController
         }
         return $voucher_no;
     }
+    // Invoice No
+    private function voucher_no_new(){
+        $prefix = 'AB';
+        $serialNo = 1;
+        $current_voucher_no = SellRequest::max('id');
+        if($current_voucher_no == null){
+            $voucher_no = $prefix.'-000'.$serialNo;
+        }else{
+            $voucherIncrementNumber = explode("-",$current_voucher_no);
+            $currentPrefix = $voucherIncrementNumber[0];
+            $currentSerialNo = $voucherIncrementNumber[1];
+            $currentSerialNo++;
+            if($currentSerialNo >= 9999){
+                $currentPrefix++;
+                $currentSerialNo = 1;
+            }
+
+            if($currentSerialNo <= 9){
+                $nextSerialNo = '000'.$currentSerialNo;
+            }
+            elseif($currentSerialNo <= 99){
+                $nextSerialNo = '00'.$currentSerialNo;
+            }
+            elseif($currentSerialNo <= 999){
+                $nextSerialNo = '0'.$currentSerialNo;
+            }
+            else{
+                $nextSerialNo = $currentSerialNo;
+            }
+            $voucher_no = $currentPrefix."-".$nextSerialNo;
+        }
+        return $voucher_no;
+    }
 
     // Invoice No
     private function bill_no(){
@@ -1219,8 +1252,11 @@ class SellerController extends BaseController
     
     //approve order funciton updated 11/01/22 start
     public function undelivered_details_approve($id){
-        self::voucher_no();
-        $voucher_no_n = $this->voucher_no();
+
+       
+        
+        $voucher_no_n = self::voucher_no_new();
+        $fixed_voucher_no =  SellRequest::where('id', $id)->pluck('voucher_no');
 
 
         try{
@@ -1242,7 +1278,7 @@ class SellerController extends BaseController
                 $data['is_approved'] = 1;
                 $data['approved_by'] = $this->user->id;
             }
-            $data['voucher_no']= $voucher_no_n;
+            $data['voucher_no']= $fixed_voucher_no[0];
             $data['v_date'] = date('Y-m-d');
             $data['company_id'] = $req_details->company_id;
             $data['seller_id'] = $req_details->seller_id;
@@ -1301,6 +1337,7 @@ class SellerController extends BaseController
 
             }else{
                 $data['seller_id'] = $this->user->id;
+                $data['voucher_no']= $voucher_no_n[0];
             }
             $data['v_date'] = date('Y-m-d');
             $data['company_id'] = $req_details->company_id;
