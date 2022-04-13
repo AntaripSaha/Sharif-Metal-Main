@@ -4,6 +4,7 @@ $(function () {
       processing: true,
       serverSide: true,
       ajax: baseUrl+"seller/undelivered_sales",
+      pageLength: 100,
       order: [ [0, 'desc'] ],
       columns: [
           {data: 'input', name: 'input'},

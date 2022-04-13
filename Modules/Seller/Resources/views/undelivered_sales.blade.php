@@ -23,7 +23,6 @@
     <!-- /.content-header -->
     <div class="container-fluid">
         <div class="row">
-            
             @if( session()->has('success') )
             <div class="alert alert-success alert-dismissible fade show col-md-12" role="alert">
               {{ session()->get('success') }}

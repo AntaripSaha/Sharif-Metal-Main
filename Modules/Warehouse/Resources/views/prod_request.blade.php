@@ -55,6 +55,7 @@
                             <thead>
                                 <tr>
                                     <th><input type="checkbox"></th>
+                                    <th>Date</th>
                                     <th>Voucher No</th>
                                     <th>Customer Name</th>
                                     <th>Request Person</th>

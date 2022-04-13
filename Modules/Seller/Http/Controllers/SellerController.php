@@ -114,16 +114,17 @@ class SellerController extends BaseController
         return $voucher_no;
     }
     // Invoice No
+    // Invoice No
     private function voucher_no_new(){
         $prefix = 'AB';
         $serialNo = 1;
-        $current_voucher_no = SellRequest::max('id');
+        $current_voucher_no = SellRequest::max('req_id');
         if($current_voucher_no == null){
             $voucher_no = $prefix.'-000'.$serialNo;
         }else{
             $voucherIncrementNumber = explode("-",$current_voucher_no);
             $currentPrefix = $voucherIncrementNumber[0];
-            $currentSerialNo = $voucherIncrementNumber[1];
+            $currentSerialNo = $voucherIncrementNumber[2];
             $currentSerialNo++;
             if($currentSerialNo >= 9999){
                 $currentPrefix++;
@@ -146,6 +147,8 @@ class SellerController extends BaseController
         }
         return $voucher_no;
     }
+    // Invoice No
+
 
     // Invoice No
     private function bill_no(){

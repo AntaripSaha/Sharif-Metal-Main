@@ -7,6 +7,7 @@ $(function () {
       order: [ [0, 'desc'] ],
       columns: [
           {data: 'input', name: 'input'},
+          {data: 'v_date', name: 'v_date'},
           {data: 'voucher_no', name: 'voucher_no'},
           {data: 'customer.customer_name', name: 'customer.customer_name'},
           {data: 'seller.name', name: 'seller.name'},
