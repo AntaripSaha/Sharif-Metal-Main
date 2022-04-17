@@ -96,8 +96,8 @@
                                         <td style="text-align: center" width="10%">{{ $undelivered->products->product_id }}</td>
                                         <td style="text-align: center" width="50%">{{ $undelivered->products->product_name }}</td>
                                         <td style="text-align: center" width="5%">{{ $undelivered->products->head_code }}</td>
-                                        <td style="text-align: center" width="10%">{{ $undelivered->products->price }}</td>
-                                        <td style="text-align: center" width="10%">{{ $undelivered->undelivered_product }}</td>                            
+                                        <td style="text-align: center" width="10%">{{ $undelivered->undelivered_product }}</td> 
+                                        <td style="text-align: center" width="10%">{{ $undelivered->products->price }}</td>                           
                                         <td style="text-align: center" width="12%">{{ $undelivered->products->price * $undelivered->undelivered_product }}</td>
                                     </tr>
                                 @endif

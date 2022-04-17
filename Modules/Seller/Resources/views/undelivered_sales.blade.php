@@ -69,6 +69,7 @@
     </div><!-- /.container-fluid -->
 </section>
 <!-- /.content -->
+
 @endsection
 @section('js')
 <script src="{{asset('js/Modules/Sale/undelivered_sales.js')}}"></script>

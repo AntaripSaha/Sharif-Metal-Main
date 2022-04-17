@@ -5,6 +5,11 @@ $(function () {
       serverSide: true,
       ajax: baseUrl+"seller/undelivered_sales",
       pageLength: 100,
+      rowCallback: function( row, data){
+        if (data["price"] <= 0) {
+            $(row).hide();
+        }
+      },
       order: [ [0, 'desc'] ],
       columns: [
           {data: 'input', name: 'input'},
@@ -20,7 +25,6 @@ $(function () {
               { "orderable": true, "searchable": true }
           ]
     });
-
   /*View Seals Request Info*/
   $('.table').on('click', '.view-tr', function(){
       "use strict";
@@ -28,8 +32,6 @@ $(function () {
       var url= baseUrl+"seller/undelivered_details/"+unitID;
       getAjaxView(url,data=null,'ajaxview',false,'get');
   });
-
-
   /*Print Invoice*/
   $('.table').on('click', '.print-tr', function(){
       "use strict";
@@ -37,4 +39,5 @@ $(function () {
       var url= baseUrl+"seller/print_invoice/"+unitID;
       location.href = url;
   });
+
 });
