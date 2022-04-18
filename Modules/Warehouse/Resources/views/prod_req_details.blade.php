@@ -134,7 +134,7 @@
                             <label>
                                 @lang('product.req_qnt')
                             </label>
-                            <input type="text" class="form-control" readonly id="req_qnt" >
+                            <input type="text" class="form-control" readonly id="req_qnt">
                         </div>
                         <div class="col-lg-2" id="q_sell">
                             <label>
@@ -358,14 +358,11 @@ var rem_q;
 var productIdArray = [];
 
 function addRow(e) {
-    var requested_qt = document.getElementById('req_qnt').value;
-    var delivered_qt = document.getElementById('qnt_tosell').value;
-    if(requested_qt < delivered_qt){
-        alert('wrong');
-        return false;
-    }
+
     var req_qnt = $("#req_qnt").val()
     var qnt_tosell = $("#qnt_tosell").val()
+
+
     var pid = $('#product_id option:selected').text();
     if(productIdArray.includes(pid)){
         swal("", "Product Already Exists", "warning");
@@ -373,8 +370,6 @@ function addRow(e) {
     }else{
         productIdArray.push(pid);
     }
-
-
 
     $("#addinvoiceItem").append('<tr>'+
         '<td class="product_field">'+
@@ -418,8 +413,42 @@ function addRow(e) {
         $('#set_products').hide();
         $('#s_combo').addClass('d-none');
     }
- 
+    
+    
+    
 }
+
+// function AddNewInvoice() {
+//     var form = $('#sell_req-deliver-form');
+//     var successcallback = function (a) {
+//         console.log(a.data)
+//         swal({
+//             title: 'Do you want to Print the Chalan Testtt'+a.data+' ?',
+//             text: '',
+//             type: "warning",
+//             showCancelButton: true,
+//             confirmButtonColor: "#28A745",
+//             confirmButtonText: "Print",
+//             cancelButtonText: "Cancel",
+//             closeOnConfirm: true,
+//             closeOnCancel: false
+//         },
+//         function (isConfirm) {
+//             console.log('isConfirm Function Called')
+//             if (isConfirm) {
+//                 console.log('Enter If Block');
+//                 var url = baseUrl+"warehouse/print_chalan/"+a.data;
+//                 swal("Chalan Successfully Printed", "success");
+//                 location.href = url;
+//             } else {
+//                 console.log('Enter Else Block');
+//                 location.reload();
+
+//             }
+//         }) 
+//     }
+//     ajaxValidationFormSubmit(form.attr('action'), form.serialize(), '', successcallback);
+// }
 
 $('#btn_delivered').on('click', function(){
     console.log('clicked');
@@ -477,6 +506,15 @@ $('#qnt_tosell').on('change keyup paste',function() {
     var qs = this.value;
     if (qs > av_qnty) {
         alert('You Can Not Sell Above Available Quantity');
+        $('#qnt_tosell').val('');
+    }
+});
+$('#qnt_tosell').on('change keyup paste',function() {
+    var qs = $('#qnt_tosell').val();  
+    var req_qnt = $("#req_qnt").val();
+    var total = req_qnt - qs;
+    if (total < 0) {
+        alert('You Can Not Sell Above Requested Quantity');
         $('#qnt_tosell').val('');
     }
 });
