@@ -72,7 +72,7 @@
                                     <select class="form-control-sm form-control js-example-basic-single" name="product_id" id="product_id">
                                         <option selected disabled>Select Product</option>
                                         @foreach ($product as $p)
-                                        <option name="product_id" value="{{ $p->id }}">{{ $p->product_id }} - {{ $p->product_name }}</option>
+                                        <option name="product_id" value="{{ $p->id }}">{{ $p->product_id }} - {{ $p->product_name }} - {{$p->head_code}}</option>
                                         @endforeach
                                     </select>
                                 </div>
