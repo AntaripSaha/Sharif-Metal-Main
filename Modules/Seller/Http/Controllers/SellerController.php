@@ -696,7 +696,7 @@ class SellerController extends BaseController
                         $btn_view ='<a class="mr-2 cp view-tr btn btn-success btn-sm" id="view-tr-'.$row->id.'"> View</a>';
                         $btn_print = '<a class="mr-2 cp print-tr btn btn-warning btn-sm" id="print-tr-'.$row->id.'"> Bill</a>';
                         $btn_bill = '<a class="mr-2 cp view-tr btn btn-info btn-sm" href=' . route('bill.edit', $row->id) . '>Edit Bill</a>';
-                        $btn_printChalan = '<a class="mr-2 cp printchalan-tr btn btn-info btn-sm" id="printchalan-tr-'.$row->voucher_no.'"> Challan</a>';
+                        $btn_printChalan = '<a class="mr-2 cp printchalan-tr btn btn-info btn-sm" id="printchalan-tr-'.$row->id.'"> Challan</a>';
 
                         $btn = $btn_printChalan.$btn_print.$btn_bill.$btn_view.$btn_reject.$btn_edit_discount;
                     }
@@ -710,7 +710,7 @@ class SellerController extends BaseController
                     //role id 18 = Chalan
                     if($this->user->role->id == 18){ 
                         $btn_view ='<a class="mr-2 cp view-tr btn btn-success btn-sm" id="view-tr-'.$row->id.'"> View</a>';
-                        $btn_printChalan = '<a class="mr-2 cp printchalan-tr btn btn-info btn-sm" id="printchalan-tr-'.$row->voucher_no.'"> Challan</a>';
+                        $btn_printChalan = '<a class="mr-2 cp printchalan-tr btn btn-info btn-sm" id="printchalan-tr-'.$row->id.'"> Challan</a>';
                         $btn = $btn_printChalan.$btn_view;
                     }
                     return $btn;
@@ -1317,6 +1317,7 @@ class SellerController extends BaseController
 
        public function re_order($req_id)
     {
+        
         self::voucher_no();
         $voucher_no_n = SellRequest::where('id', $req_id)->pluck('voucher_no');
 
@@ -1357,10 +1358,11 @@ class SellerController extends BaseController
 
             $re_id = SellRequest::createRequest($data);
             SellRequest::where('id',$req_id)->update(['fully_delivered'=>1]);
+            Undelivered::where('req_id', $req_id)->update(['deleted'=>1]);
             foreach ($products as $key => $product) {
                 $n_data['product_id'] = $product->product_id;
                 $n_data['qnty'] = $product->qnty - $product->del_qnt;
-                $n_data['undelivered_qnty'] = 0;
+                $n_data['undelivered_qnty'] = $product->qnty - $product->del_qnt;
                 $n_data['prod_disc'] = $product->prod_disc;
                 $n_data['unit_price'] = $product->unit_price;
                 $n_data['production_price'] = $product->production_price;

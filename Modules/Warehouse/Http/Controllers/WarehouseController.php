@@ -1058,7 +1058,8 @@ class WarehouseController extends BaseController
             }
         </style>';
         $title = 'Challan';
-        $chalan = SellRequest::with('customer')->where('voucher_no',$chalan_no)->first();
+        $chalan = SellRequest::with('customer')->where('id',$chalan_no)->first();
+        // $chalan = SellRequest::with('customer')->where('voucher_no',$chalan_no)->first();
         $products = RequestProduct::with('products')->where('req_id',$chalan->id)->where("del_qnt","!=",0)->get();
         $company_info = Company::where('id',$chalan->company_id)->first();
         $sales_person_name = User::where("id",$chalan->seller_id)->select("name","user_id")->first();
