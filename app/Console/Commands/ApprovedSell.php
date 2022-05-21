@@ -35,15 +35,24 @@ class ApprovedSell extends Command
     /**
      * Execute the console command.
      *
-     * @return int
+     * @return int  
      */
     public function handle()
     {
-        $sell_request = SellRequest::select('id','is_approved')->get();
+        $sell_request = SellRequest::select('id','is_approved', 'approved_date')->get();
         $undeli = Undelivered::all();
         foreach($undeli as $key=>$und){
-             $request_product_update = Undelivered::where('req_id',$sell_request[$key]->id)
-            ->update(array('is_approved' => $sell_request[$key]->is_approved));
+            $request_product_update = Undelivered::where('req_id',$sell_request[$key]->id)
+                                                    ->update(array(
+                                                        'is_approved' => $sell_request[$key]->is_approved,        
+                                                ));
+        if( $sell_request[$key]->approved_date != null){
+            $request_product_update = Undelivered::where('req_id',$sell_request[$key]->id)
+                                                    ->update(array(
+                                                        'created_at' => $sell_request[$key]->approved_date,
+                                                ));
+        }
+        
         }
     }
 }

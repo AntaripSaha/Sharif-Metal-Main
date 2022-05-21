@@ -1001,7 +1001,7 @@ class WarehouseController extends BaseController
                     $sell_request->save();
                 }
                 
-                return response()->json(['status'=>'success','data'=>$data['chalan_no']], 200);
+                return response()->json(['status'=>'success','data'=>$data['request_id']], 200);
             }
         }catch(\Exception $e){
                 return response()->json(['status'=>$e->getMessage()], 500);
@@ -1047,6 +1047,7 @@ class WarehouseController extends BaseController
     
     public function print_chalan(Request $request, $chalan_no)
     {
+        // return $request;
         // return $request->all();
         $pdf_style = '<style>
             *{

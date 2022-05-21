@@ -29,6 +29,7 @@ class CreateSellRequestsTable extends Migration
             $table->unsignedBigInteger('customer_id');
             $table->boolean('is_delivered')->default('0');
             $table->boolean('is_approved')->default('0');
+            $table->string('approved_date')->nullable();
             $table->boolean('is_rejected')->default(false);
             $table->unsignedBigInteger('approved_by')->nullable();
             $table->string('voucher_no')->nullable();

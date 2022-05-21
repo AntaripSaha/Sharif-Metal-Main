@@ -23,7 +23,6 @@ use Modules\Warehouse\Entities\Warehouse;
 use App\Exports\SaleRequestDetailsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Hash;
-
 use PDF;
 use App\User;
 use Carbon\Carbon;
@@ -565,7 +564,8 @@ class SellerController extends BaseController
     public function sold_details($id)
     {
         $cus_id = SellRequest::select('customer_id','req_id','seller_id','v_date','del_amount','is_approved',
-                                        'remarks','del_discount','company_id','sale_disc', 'sale_discount_overwrite')->with('seller')->where('id', $id)->first();
+                                    'remarks','del_discount','company_id','sale_disc', 
+                                    'sale_discount_overwrite')->with('seller')->where('id', $id)->first();
         $data = Customer::with('accounts')->where('id',$cus_id->customer_id)->first();
         $seller = User::select('name')->where('id',$cus_id->seller_id)->first();
         $cus_name = $data->customer_name;
@@ -589,12 +589,13 @@ class SellerController extends BaseController
     {
         self::voucher_no();
         $voucher_no_n = $this->voucher_no();
+        $today = date("Y-m-d h:i:s");
         try{
             $approved_by = $this->user->id;
             // $voucher_no = 'v-'.generateRandomStr(8);
             $voucher_no = $voucher_no_n;
 
-            $update = SellRequest::where('id', $id)->update(['is_approved' => 1, 'approved_by' => $approved_by]);
+            $update = SellRequest::where('id', $id)->update(['is_approved' => 1, 'approved_by' => $approved_by, 'approved_date'=>$today]);
             return response()->json(['status'=>'success'], 200);
         }catch(\Exception $e){
             return response()->json(['status'=>$e->getMessage()], 500);
@@ -999,16 +1000,14 @@ class SellerController extends BaseController
 
         $product = RequestProduct::where('req_id', $id)->get();
         $data = $request;
-
         $total_amount = 0;
         $total_del_amount = 0;
         $total_discount_amount = 0;
         $del_discount_amount = 0;
         $sale_discount = (float)$data['sale_discount'] / 100;
-
         $amount = 0;
         $del_amount = 0;
-    
+
         foreach ($data['product_id'] as $key => $value) {
             RequestProduct::where('req_id', $id)->where('product_id', $data['product_id'][$key]) ->update(array('unit_price' =>  (float)$data['unit_price'][$key]));
 
@@ -1709,7 +1708,7 @@ class SellerController extends BaseController
     
     // All Undelivered Products Report updated 11/01/22 Start
     public function all_undelivered_products(){
-         $undelivered_products = Undelivered::with('products')
+        $undelivered_products = Undelivered::with('products')
                                                     ->groupBy('product_id')
                                                     ->where('is_approved', 1)
                                                     ->where('deleted', 0)
@@ -1874,6 +1873,8 @@ class SellerController extends BaseController
                                                     ->where('created_at', '<=',  $to_date)
                                                     ->groupBy('product_id')
                                                     ->get();
+
+        $product = Product::all();
             $pdf_style = '<style>
                 *{
                     font-size:15px;
@@ -1973,7 +1974,6 @@ class SellerController extends BaseController
                                     ->whereDate('created_at', '=', $from_date)
                                     ->groupBy('product_id')
                                     ->get();
-
         }elseif($product_id && $from_date == Null && $to_date == Null ){
             $undelivered_products = Undelivered::with('products')
                                     ->where('is_approved', 1)
@@ -1983,7 +1983,6 @@ class SellerController extends BaseController
                                     ->where('product_id', $product_id)
                                     ->groupBy('product_id')
                                     ->get();
-
         }elseif($product_id && $from_date != Null && $to_date != Null ){
             $undelivered_products = Undelivered::with('products')
                                     ->where('is_approved', 1)
@@ -1995,7 +1994,6 @@ class SellerController extends BaseController
                                     ->where('created_at', '<=',  $to_date)
                                     ->groupBy('product_id')
                                     ->get();
-
         }elseif($product_id && $from_date != Null){
             $undelivered_products = Undelivered::with('products')
                                                     ->where('is_approved', 1)
