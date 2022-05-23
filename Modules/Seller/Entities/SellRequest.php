@@ -16,7 +16,7 @@ class SellRequest extends Model
     // }
     protected static $logName = "Sell Request";
 
-    protected $fillable = ['seller_id','customer_id','req_id','v_date','del_date','company_id','amount','del_amount','is_delivered','is_approved','approved_by','voucher_no','remarks','gift','discount','del_discount','sale_disc','pname','dco_code','po_code','receiver','phn_no','project_address','transp_name','deliv_pname','fully_delivered','due_amount'];
+    protected $fillable = ['seller_id','customer_id','req_id','v_date','del_date','company_id','amount','del_amount','is_delivered','is_approved','approved_by','approved_date','voucher_no','remarks','gift','discount','del_discount','sale_disc','pname','dco_code','po_code','receiver','phn_no','project_address','transp_name','deliv_pname','fully_delivered','due_amount'];
 
     public function customer()
     {

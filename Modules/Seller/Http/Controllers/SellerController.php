@@ -1037,6 +1037,7 @@ class SellerController extends BaseController
 
     public function undelivered_sales(Request $request)
     {
+        
         if( auth('web')->user()->role->id == 4 ){
             $sells = SellRequest::with('customer','seller')->where('seller_id',auth('web')->user()->id)->where('is_approved',1)->where('wasted', NULL)->where('fully_delivered',0)->get();
         }
@@ -1252,12 +1253,10 @@ class SellerController extends BaseController
     
     //approve order funciton updated 11/01/22 start
     public function undelivered_details_approve($id){
+        self::voucher_no();
+        $voucher_no_n = $this->voucher_no();
 
-       
-        
-        $voucher_no_n = self::voucher_no_new();
-        $fixed_voucher_no =  SellRequest::where('id', $id)->pluck('voucher_no');
-
+         
 
         try{
             $products = RequestProduct::with('products')->where('req_id',$id)->where('qnty','!=','del_qnt')->get();
@@ -1278,7 +1277,8 @@ class SellerController extends BaseController
                 $data['is_approved'] = 1;
                 $data['approved_by'] = $this->user->id;
             }
-            $data['voucher_no']= $fixed_voucher_no[0];
+            $data['approved_date'] = date("Y-m-d h:i:s");
+            $data['voucher_no']= $voucher_no_n;
             $data['v_date'] = date('Y-m-d');
             $data['company_id'] = $req_details->company_id;
             $data['seller_id'] = $req_details->seller_id;
@@ -1312,17 +1312,18 @@ class SellerController extends BaseController
     //approve order funciton   updated 11/01/22  end
     
     
+    
         //approve re_order funciton updated 11/01/22 start
 
        public function re_order($req_id)
     {
-        
         self::voucher_no();
         $voucher_no_n = SellRequest::where('id', $req_id)->pluck('voucher_no');
 
         self::bill_no();
         $bill_no = $this->bill_no();
 
+        $today = date("Y-m-d h:i:s");
 
         try{
             $products = RequestProduct::with('products')->where('req_id',$req_id)->where('qnty','!=','del_qnt')->get();
@@ -1333,12 +1334,14 @@ class SellerController extends BaseController
             if ($this->user->isOfficeAdmin()) {
                 $data['is_approved'] = 1;
                 $data['approved_by'] = $this->user->id;
+                $data['approved_date'] = $today;
                 // $data['voucher_no']= 'v-'.generateRandomStr(8);
                 $data['voucher_no']= $voucher_no_n[0];
 
             }else{
                 $data['seller_id'] = $this->user->id;
                 $data['voucher_no']= $voucher_no_n[0];
+                $data['approved_date'] = $today;
             }
             $data['v_date'] = date('Y-m-d');
             $data['company_id'] = $req_details->company_id;
