@@ -1711,6 +1711,8 @@ class SellerController extends BaseController
     
     // All Undelivered Products Report updated 11/01/22 Start
     public function all_undelivered_products(){
+        
+        
         $undelivered_products = Undelivered::with('products')
                                                     ->groupBy('product_id')
                                                     ->where('is_approved', 1)
@@ -1750,6 +1752,98 @@ class SellerController extends BaseController
     }
     // Print Undelivered Products End
     
+
+    // Undelivered Product Search updated 11/01/22 Start
+    public function undelivered_product_search(Request $request){
+        $product_id = $request->product_id;
+        $from_date = $request->from_date;
+        $to_date = $request->to_date;
+
+
+        if($product_id == Null && $from_date == Null && $to_date == Null){
+            $undelivered_products = Undelivered::with('products')
+                                    ->groupBy('product_id')
+                                    ->where('is_approved', 1)
+                                    ->where('deleted', 0)
+                                    ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
+                                    ->where('qnty' ,'<>', 'del_qnt')
+                                    ->get();
+
+        }elseif($product_id == Null && $from_date != Null && $to_date == Null){
+            $undelivered_products = Undelivered::with('products')
+                                    ->groupBy('product_id')
+                                    ->where('is_approved', 1)
+                                    ->where('deleted', 0)
+                                    ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
+                                    ->where('qnty' ,'<>', 'del_qnt')
+                                    ->whereDate('created_at', '=', $from_date)
+                                    ->get();
+        }elseif($product_id && $from_date == Null && $to_date == Null ){
+            $undelivered_products = Undelivered::with('products')
+                                    ->where('is_approved', 1)
+                                    ->where('deleted', 0)
+                                    ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
+                                    ->where('qnty' ,'<>', 'del_qnt')
+                                    ->where('product_id', $product_id)
+                                    ->groupBy('product_id')
+                                    ->get();
+        }elseif($product_id && $from_date != Null && $to_date != Null ){
+            
+
+            $undelivered_products = Undelivered::with('products')
+                                    ->where('is_approved', 1)
+                                    ->where('deleted', 0)
+                                    ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
+                                    ->where('qnty' ,'<>', 'del_qnt')
+                                    ->where('product_id', $product_id)
+                                    ->where('created_at','>=', $from_date)
+                                    ->where('created_at', '<=',  $to_date)
+                                    ->groupBy('product_id')
+                                    ->get();
+        }elseif($product_id && $from_date != Null){
+            $undelivered_products = Undelivered::with('products')
+                                                    ->where('is_approved', 1)
+                                                    ->where('deleted', 0)
+                                                    ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
+                                                    ->where('qnty' ,'<>', 'del_qnt')
+                                                    ->where('product_id', $product_id)
+                                                    ->whereDate('created_at','=', $from_date)
+                                                    ->groupBy('product_id')
+                                                    ->get();
+
+        }elseif($product_id == Null && $from_date && $to_date){
+            $undelivered_products = Undelivered::with('products')
+                                                    ->where('is_approved', 1)
+                                                    ->where('deleted', 0)
+                                                    ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
+                                                    ->where('qnty' ,'<>', 'del_qnt')
+                                                    ->where('created_at','>=', $from_date)
+                                                    ->where('created_at', '<=',  $to_date)
+                                                    ->groupBy('product_id')
+                                                    ->get();
+
+        }else{
+            $undelivered_products = Undelivered::with('products')
+                                                    ->where('is_approved', 1)
+                                                    ->where('deleted', 0)
+                                                    ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
+                                                    ->where('qnty' ,'<>', 'del_qnt')
+                                                    ->groupBy('product_id')
+                                                    ->get();
+
+        }
+
+        $product = Product::all();
+        return view('seller::total_undelivered_product_report_result', compact('undelivered_products', 'product', 'product_id','from_date','to_date'));
+    }
+    // Undelivered Product Search updated 11/01/22 End
+
+
+
+
+
+
+
     // Print Undelivered Products updated 11/01/22 Start
     public function undelivered_product_print(Request $request){
         $product_id = $request->product_id;
@@ -1757,11 +1851,11 @@ class SellerController extends BaseController
         $to_date = $request->to_date;
         if($product_id == Null && $from_date == Null && $to_date == Null){
             $undelivered_products = Undelivered::with('products')
+                                    ->groupBy('product_id')
                                     ->where('is_approved', 1)
                                     ->where('deleted', 0)
                                     ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
                                     ->where('qnty' ,'<>', 'del_qnt')
-                                    ->groupBy('product_id')
                                     ->get();
             $pdf_style = '<style>
             *{
@@ -1780,15 +1874,46 @@ class SellerController extends BaseController
             $name = "UndeliveredProductReport.pdf";
             return $pdf->stream($name, array("Attachment" => false));
 
-        }elseif($product_id == Null && $from_date != Null && $to_date == Null){
-            //return "fixed date all product";
+        }elseif($product_id && $from_date != Null && $to_date == Null){
             $undelivered_products = Undelivered::with('products')
                                     ->where('is_approved', 1)
                                     ->where('deleted', 0)
                                     ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
                                     ->where('qnty' ,'<>', 'del_qnt')
-                                    ->whereDate('created_at', '=', $from_date)
+                                    ->where('product_id', $product_id)
+                                    ->whereDate('created_at','=', $from_date)
                                     ->groupBy('product_id')
+                                    ->get();
+
+                                    
+                                    $pdf_style = '<style>
+                                    *{
+                                    font-size:15px;
+                                    }
+                                    table,td, th {
+                                    border: 1px solid black;
+                                    border-collapse: collapse;
+                                    width:100%;
+                                    }
+                                    </style>';
+                                    $title = 'Undelivered Product Report';
+                                    $company_info = Company::where('id',$this->user->company_id)->first();
+                                    $pdf = PDF::loadView('seller::undelivered_product_print',compact('to_date','from_date','product_id','undelivered_products', 'company_info' ,'pdf_style','title'));
+                                    $pdf->setPaper('A4', 'potrait');
+                                    $name = "UndeliveredProductReport.pdf";
+                                    return $pdf->stream($name, array("Attachment" => false));
+                        
+
+        }
+        elseif($product_id == Null && $from_date != Null && $to_date == Null){
+            //return "fixed date all product";
+            $undelivered_products = Undelivered::with('products')
+                                    ->groupBy('product_id')
+                                    ->where('is_approved', 1)
+                                    ->where('deleted', 0)
+                                    ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
+                                    ->where('qnty' ,'<>', 'del_qnt')
+                                    ->whereDate('created_at', '=', $from_date)
                                     ->get();
             $pdf_style = '<style>
             *{
@@ -1808,15 +1933,17 @@ class SellerController extends BaseController
             return $pdf->stream($name, array("Attachment" => false));
 
         }
-        elseif($product_id && $from_date != Null){
-            //return "Product_id Is Available with fixed date";
+        elseif($product_id && $from_date && $to_date != Null){
+            
+
             $undelivered_products = Undelivered::with('products')
                                     ->where('is_approved', 1)
                                     ->where('deleted', 0)
                                     ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
                                     ->where('qnty' ,'<>', 'del_qnt')
                                     ->where('product_id', $product_id)
-                                    ->whereDate('created_at','=', $from_date)
+                                    ->where('created_at','>=', $from_date)
+                                    ->where('created_at', '<=',  $to_date)
                                     ->groupBy('product_id')
                                     ->get();
             $pdf_style = '<style>
@@ -1838,6 +1965,7 @@ class SellerController extends BaseController
 
         }
         elseif($product_id && $from_date == Null && $to_date == Null){
+            
             $undelivered_products = Undelivered::with('products')
                                     ->where('is_approved', 1)
                                     ->where('deleted', 0)
@@ -1866,6 +1994,7 @@ class SellerController extends BaseController
 
 
         }elseif($product_id && $from_date != Null && $to_date != Null){
+            
             $undelivered_products = Undelivered::with('products')
                                                     ->where('is_approved', 1)
                                                     ->where('deleted', 0)
@@ -1952,88 +2081,6 @@ class SellerController extends BaseController
     }
     // Print Undelivered Products updated 11/01/22 End
 
-    // Undelivered Product Search updated 11/01/22 Start
-    public function undelivered_product_search(Request $request){
-        $product_id = $request->product_id;
-        $from_date = $request->from_date;
-        $to_date = $request->to_date;
-
-
-        if($product_id == Null && $from_date == Null && $to_date == Null){
-            $undelivered_products = Undelivered::with('products')
-                                    ->where('is_approved', 1)
-                                    ->where('deleted', 0)
-                                    ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
-                                    ->where('qnty' ,'<>', 'del_qnt')
-                                    ->groupBy('product_id')
-                                    ->get();
-
-        }elseif($product_id == Null && $from_date != Null && $to_date == Null){
-            $undelivered_products = Undelivered::with('products')
-                                    ->where('is_approved', 1)
-                                    ->where('deleted', 0)
-                                    ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
-                                    ->where('qnty' ,'<>', 'del_qnt')
-                                    ->whereDate('created_at', '=', $from_date)
-                                    ->groupBy('product_id')
-                                    ->get();
-        }elseif($product_id && $from_date == Null && $to_date == Null ){
-            $undelivered_products = Undelivered::with('products')
-                                    ->where('is_approved', 1)
-                                    ->where('deleted', 0)
-                                    ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
-                                    ->where('qnty' ,'<>', 'del_qnt')
-                                    ->where('product_id', $product_id)
-                                    ->groupBy('product_id')
-                                    ->get();
-        }elseif($product_id && $from_date != Null && $to_date != Null ){
-            $undelivered_products = Undelivered::with('products')
-                                    ->where('is_approved', 1)
-                                    ->where('deleted', 0)
-                                    ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
-                                    ->where('qnty' ,'<>', 'del_qnt')
-                                    ->where('product_id', $product_id)
-                                    ->where('created_at','>=', $from_date)
-                                    ->where('created_at', '<=',  $to_date)
-                                    ->groupBy('product_id')
-                                    ->get();
-        }elseif($product_id && $from_date != Null){
-            $undelivered_products = Undelivered::with('products')
-                                                    ->where('is_approved', 1)
-                                                    ->where('deleted', 0)
-                                                    ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
-                                                    ->where('qnty' ,'<>', 'del_qnt')
-                                                    ->where('product_id', $product_id)
-                                                    ->whereDate('created_at','=', $from_date)
-                                                    ->groupBy('product_id')
-                                                    ->get();
-
-        }elseif($product_id == Null && $from_date && $to_date){
-            $undelivered_products = Undelivered::with('products')
-                                                    ->where('is_approved', 1)
-                                                    ->where('deleted', 0)
-                                                    ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
-                                                    ->where('qnty' ,'<>', 'del_qnt')
-                                                    ->where('created_at','>=', $from_date)
-                                                    ->where('created_at', '<=',  $to_date)
-                                                    ->groupBy('product_id')
-                                                    ->get();
-
-        }else{
-            $undelivered_products = Undelivered::with('products')
-                                                    ->where('is_approved', 1)
-                                                    ->where('deleted', 0)
-                                                    ->select(DB::raw("product_id, (sum(undelivered_qnty) - sum(del_qnt)) as undelivered_product"))
-                                                    ->where('qnty' ,'<>', 'del_qnt')
-                                                    ->groupBy('product_id')
-                                                    ->get();
-
-        }
-
-        $product = Product::all();
-        return view('seller::total_undelivered_product_report_result', compact('undelivered_products', 'product', 'product_id','from_date','to_date'));
-    }
-    // Undelivered Product Search updated 11/01/22 End
 
     // Undelivered Product Search Start
     public function old_undelivered_product_search(Request $request){
