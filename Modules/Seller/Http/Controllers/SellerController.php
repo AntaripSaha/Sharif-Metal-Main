@@ -1038,11 +1038,12 @@ class SellerController extends BaseController
     public function undelivered_sales(Request $request)
     {
         
+        
         if( auth('web')->user()->role->id == 4 ){
-            $sells = SellRequest::with('customer','seller')->where('seller_id',auth('web')->user()->id)->where('is_approved',1)->where('wasted', NULL)->where('fully_delivered',0)->get();
+         $sells = SellRequest::with('customer','seller')->where('seller_id',auth('web')->user()->id)->where('is_approved',1)->where('wasted', NULL)->where('fully_delivered',0)->get();
         }
         else{
-            $sells = SellRequest::with('customer','seller')->where('is_approved',1)->where('wasted', NULL)->where('fully_delivered',0)->get();
+           $sells = SellRequest::with('customer','seller')->where('is_approved',1)->where('wasted', NULL)->where('fully_delivered',0)->get();
         }
         
         $data = [];

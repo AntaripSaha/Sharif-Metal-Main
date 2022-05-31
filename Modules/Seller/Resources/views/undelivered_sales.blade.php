@@ -2,6 +2,8 @@
 @section('css')
 @endsection
 @section('content')
+
+
 <!-- Main content -->
 <section class="content" id="ajaxview">
     <!-- Content Header (Page header) -->

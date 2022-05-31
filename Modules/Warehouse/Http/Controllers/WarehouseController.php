@@ -450,7 +450,6 @@ class WarehouseController extends BaseController
         return $data;
     }
     
-    
     public function old_deliver(Request $request)
     {
 
@@ -501,8 +500,7 @@ class WarehouseController extends BaseController
                         WarehouseProducts::where('id',$id)->update(['stck_q'=>$new_q]);
                     }
                 }
-                
-                
+
                 //Product Insert and Update from Stock//
                 foreach ($data['product_id'] as $key => $value) {
 
