@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class RequestProduct extends Model
 {
-    protected $fillable = ['product_id','unit_price','production_price','qnty','undelivered_qnty','req_id','del_qnt','prod_disc'];
+    protected $fillable = ['product_id','unit_price','production_price','qnty','undelivered_qnty','req_id','del_qnt','prod_disc','created_at'];
 
     public function products()
     {

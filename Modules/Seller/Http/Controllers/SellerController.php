@@ -1261,12 +1261,18 @@ class SellerController extends BaseController
 
             $re_id = SellRequest::createRequest($data);
             SellRequest::where('id',$id)->update(['fully_delivered'=>1]);
+            Undelivered::where('req_id', $id)->update(['deleted'=>1]);
             foreach ($products as $key => $product) {
                 if( $product->qnty != $product->del_qnt ){
                     $n_data['product_id'] = $product->product_id;
+                    $n_data['unit_price'] = $product->unit_price;
+                    $n_data['production_price'] = $product->production_price;
                     $n_data['qnty'] = $product->qnty - $product->del_qnt;
+                    $n_data['undelivered_qnty'] = $product->qnty - $product->del_qnt;
                     $n_data['prod_disc'] = $product->prod_disc;
                     $n_data['req_id'] = $re_id;
+                    $n_data['created_at'] = $req_details->approved_date;
+                    $n_data['is_approved'] = 1;
                     RequestProduct::createProductReq($n_data);
                     Undelivered::createProductDel($n_data);
                 }

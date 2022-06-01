@@ -46,7 +46,7 @@ class ApprovedSell extends Command
                                                     ->update(array(
                                                         'is_approved' => $sell_request[$key]->is_approved,        
                                                 ));
-        if( $sell_request[$key]->approved_date != null){
+        if( $sell_request[$key]->approved_date == 0){
             $request_product_update = Undelivered::where('req_id',$sell_request[$key]->id)
                                                     ->update(array(
                                                         'created_at' => $sell_request[$key]->approved_date,
