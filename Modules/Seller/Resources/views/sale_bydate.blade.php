@@ -23,7 +23,7 @@
             {{-- <td>{{$sale->del_amount}}</td> --}}
             <td>
                 <button class="btn btn-sm btn-info mr-2 printchalan-tr"
-                    id="printchalan-tr-{{$sale->voucher_no}}">Challan</button>
+                    id="printchalan-tr-{{$sale->id}}">Challan</button>
                 <button class="btn btn-sm btn-warning mr-2 print-tr" id="print-tr-{{$sale->id}}">Bill</button>
                 <button class="btn btn-sm btn-success view-tr" id="view-tr-{{$sale->id}}">View</button>
             </td>

@@ -1667,7 +1667,8 @@ class SellerController extends BaseController
     {
         $data = $request->all();
         $sales = SellRequest::with('customer','seller')->where('is_delivered',1)->whereBetween('del_date', [$data['from'],$data['to']])->get();
-        return view('seller::sale_bydate',compact('sales'));exit;
+        return view('seller::sale_bydate',compact('sales'));
+        exit;
     }
 
     // Update or Overwrite Sale Discount by Admin
@@ -1712,8 +1713,7 @@ class SellerController extends BaseController
     
     // All Undelivered Products Report updated 11/01/22 Start
     public function all_undelivered_products(){
-        
-        
+
         $undelivered_products = Undelivered::with('products')
                                                     ->groupBy('product_id')
                                                     ->where('is_approved', 1)

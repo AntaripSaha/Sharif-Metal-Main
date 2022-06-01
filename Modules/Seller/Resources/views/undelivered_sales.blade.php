@@ -46,8 +46,7 @@
                     </div>
                     <!-- /.card-header -->
                     <div class="card-body">
-                        <table id="undeliveredTable" class="table table-bordered table-striped display responsive nowrap"
-                            width="100%">
+                        <table id="undeliveredTable" class="table table-bordered table-striped display responsive nowrap" width="100%">
                             <thead>
                                 <tr>
                                     <th><input type="checkbox"></th>

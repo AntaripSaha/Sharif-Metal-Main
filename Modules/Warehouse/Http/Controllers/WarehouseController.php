@@ -1046,6 +1046,7 @@ class WarehouseController extends BaseController
     public function print_chalan(Request $request, $chalan_no)
     {
         // return $request;
+        // return $chalan_no;
         // return $request->all();
         $pdf_style = '<style>
             *{
@@ -1056,8 +1057,8 @@ class WarehouseController extends BaseController
                 border-collapse: collapse;
             }
         </style>';
-        $title = 'Challan';
-        $chalan = SellRequest::with('customer')->where('id',$chalan_no)->first();
+       $title = 'Challan';
+       $chalan = SellRequest::with('customer')->where('id',$chalan_no)->first();
         // $chalan = SellRequest::with('customer')->where('voucher_no',$chalan_no)->first();
         $products = RequestProduct::with('products')->where('req_id',$chalan->id)->where("del_qnt","!=",0)->get();
         $company_info = Company::where('id',$chalan->company_id)->first();
