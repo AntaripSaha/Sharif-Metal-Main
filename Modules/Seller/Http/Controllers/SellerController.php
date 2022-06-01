@@ -1052,9 +1052,6 @@ class SellerController extends BaseController
         return view('seller::undelivered_sales');
     }
     
-    
-
-    
     // new undeliverd_sales
     
     
@@ -1108,7 +1105,6 @@ class SellerController extends BaseController
         }
         return view('seller::undelivered_sales');
     }
-    
     
     public function rejected_sales(Request $request){
         if(!$this->user->can('browse',app('Modules\Seller\Entities\Seller'))){
@@ -1284,8 +1280,6 @@ class SellerController extends BaseController
     }
     //approve order funciton   updated 11/01/22  end
     
-    
-    
         //approve re_order funciton updated 11/01/22 start
 
        public function re_order($req_id)
@@ -1350,10 +1344,7 @@ class SellerController extends BaseController
         }
         return response()->json(['status'=>'success']);
     }
-    
         //approve re_order funciton   updated 11/01/22  end
-
-
 
     public function old_re_order($req_id)
     {
@@ -1410,8 +1401,6 @@ class SellerController extends BaseController
         }
         return response()->json(['status'=>'success']);
     }
-
-
 
     public function old_direct_sale(Request $request)
     {
@@ -1521,7 +1510,6 @@ class SellerController extends BaseController
             return view('seller::direct_sale',compact('customers','products','companies','warehouses'));exit;
         }
     }
-    
     //updated 11/01/22
     public function direct_sale(Request $request)
     {
@@ -1633,7 +1621,6 @@ class SellerController extends BaseController
         }
     }
     //updated 11/01/22
-
     public function sales_bydate(Request $request)
     {
         $data = $request->all();
@@ -1666,8 +1653,6 @@ class SellerController extends BaseController
             return response()->json(['status' => 'success', 'message' => 'Due Amount Saved'],200);
         }
     }
-
-
 
     // All Undelivered Products Report Start
     public function old_all_undelivered_products(){
@@ -1702,22 +1687,22 @@ class SellerController extends BaseController
                                                 ->where('qnty' ,'<>', 'del_qnt')
                                                 ->groupBy('product_id')
                                                 ->get();
-        $pdf_style = '<style>
-        *{
-            font-size:15px;
-        }
-        table,td, th {
-            border: 1px solid black;
-            border-collapse: collapse;
-            width:100%;
-        }
-    </style>';
-    $title = 'Undelivered Product Report';
-    $company_info = Company::where('id',$this->user->company_id)->first();
-    $pdf = PDF::loadView('seller::undelivered_product_print',compact('undelivered_products', 'company_info' ,'pdf_style','title'));
-    $pdf->setPaper('A4', 'potrait');
-    $name = "UndeliveredProductReport.pdf";
-    return $pdf->stream($name, array("Attachment" => false));
+            $pdf_style = '<style>
+            *{
+                font-size:15px;
+            }
+            table,td, th {
+                border: 1px solid black;
+                border-collapse: collapse;
+                width:100%;
+            }
+        </style>';
+        $title = 'Undelivered Product Report';
+        $company_info = Company::where('id',$this->user->company_id)->first();
+        $pdf = PDF::loadView('seller::undelivered_product_print',compact('undelivered_products', 'company_info' ,'pdf_style','title'));
+        $pdf->setPaper('A4', 'potrait');
+        $name = "UndeliveredProductReport.pdf";
+        return $pdf->stream($name, array("Attachment" => false));
 
     }
     // Print Undelivered Products End
