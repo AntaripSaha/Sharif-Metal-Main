@@ -2,8 +2,6 @@
 @section('css')
 @endsection
 @section('content')
-
-
 <!-- Main content -->
 <section class="content" id="ajaxview">
     <!-- Content Header (Page header) -->
@@ -25,6 +23,7 @@
     <!-- /.content-header -->
     <div class="container-fluid">
         <div class="row">
+            
             @if( session()->has('success') )
             <div class="alert alert-success alert-dismissible fade show col-md-12" role="alert">
               {{ session()->get('success') }}
@@ -46,7 +45,8 @@
                     </div>
                     <!-- /.card-header -->
                     <div class="card-body">
-                        <table id="undeliveredTable" class="table table-bordered table-striped display responsive nowrap" width="100%">
+                        <table id="undeliveredTable" class="table table-bordered table-striped display responsive nowrap"
+                            width="100%">
                             <thead>
                                 <tr>
                                     <th><input type="checkbox"></th>
@@ -70,7 +70,6 @@
     </div><!-- /.container-fluid -->
 </section>
 <!-- /.content -->
-
 @endsection
 @section('js')
 <script src="{{asset('js/Modules/Sale/undelivered_sales.js')}}"></script>

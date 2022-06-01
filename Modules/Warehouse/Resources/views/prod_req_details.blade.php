@@ -518,7 +518,6 @@ $('#qnt_tosell').on('change keyup paste',function() {
         $('#qnt_tosell').val('');
     }
 });
-
 function selRow(e) {
     ware_combo_id = $(e).closest("td").find(".warehouse_id").val();
     combo_prod_id = $(e).closest("td").find(".combo_id").val();

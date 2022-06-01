@@ -86,7 +86,7 @@
                     <span style="font-size: 18px; text-align: left;float: right;">Mobile No : <span
                             style="font-size: 18px;">{{$chalan->phn_no}}</span></span>
                             
-
+                            
                 </div>
                 <br><br>
                 
@@ -165,6 +165,10 @@
               </footer>
             </div>
         </div>
+            
+
+
+
     </div>
 </div>
 

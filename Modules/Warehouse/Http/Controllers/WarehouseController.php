@@ -450,6 +450,7 @@ class WarehouseController extends BaseController
         return $data;
     }
     
+    
     public function old_deliver(Request $request)
     {
 
@@ -500,7 +501,8 @@ class WarehouseController extends BaseController
                         WarehouseProducts::where('id',$id)->update(['stck_q'=>$new_q]);
                     }
                 }
-
+                
+                
                 //Product Insert and Update from Stock//
                 foreach ($data['product_id'] as $key => $value) {
 
@@ -1043,10 +1045,8 @@ class WarehouseController extends BaseController
         return $pdf->stream($name, array("Attachment" => false));
     }
     
-    public function print_chalan(Request $request, $chalan_no)
+        public function print_chalan(Request $request, $chalan_no)
     {
-        // return $request;
-        // return $chalan_no;
         // return $request->all();
         $pdf_style = '<style>
             *{
@@ -1057,9 +1057,8 @@ class WarehouseController extends BaseController
                 border-collapse: collapse;
             }
         </style>';
-       $title = 'Challan';
-       $chalan = SellRequest::with('customer')->where('id',$chalan_no)->first();
-        // $chalan = SellRequest::with('customer')->where('voucher_no',$chalan_no)->first();
+        $title = 'Challan';
+        $chalan = SellRequest::with('customer')->where('id',$chalan_no)->first();
         $products = RequestProduct::with('products')->where('req_id',$chalan->id)->where("del_qnt","!=",0)->get();
         $company_info = Company::where('id',$chalan->company_id)->first();
         $sales_person_name = User::where("id",$chalan->seller_id)->select("name","user_id")->first();
