@@ -23,7 +23,6 @@ use Modules\Warehouse\Entities\Warehouse;
 use App\Exports\SaleRequestDetailsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Hash;
-
 use PDF;
 use App\User;
 use Carbon\Carbon;
@@ -1000,11 +999,8 @@ class SellerController extends BaseController
     }
 
     /*Undelivered Products from sales*/
-
     public function undelivered_sales(Request $request)
     {
-        
-        
         if( auth('web')->user()->role->id == 4 ){
             $sells = SellRequest::with('customer','seller')->where('seller_id',auth('web')->user()->id)->where('is_approved',1)->where('wasted', NULL)->where('fully_delivered',0)->get();
         }
@@ -1055,7 +1051,7 @@ class SellerController extends BaseController
     // new undeliverd_sales
     
     
-       public function new_undelivered_sales(Request $request)
+    public function new_undelivered_sales(Request $request)
     {
         
         
@@ -1282,7 +1278,7 @@ class SellerController extends BaseController
     
         //approve re_order funciton updated 11/01/22 start
 
-       public function re_order($req_id)
+    public function re_order($req_id)
     {
         
         self::voucher_no();
@@ -2144,23 +2140,17 @@ class SellerController extends BaseController
 
     // rejected_sales method start
    public function rejected_status($id){
-     
-    if($this->user->isOfficeAdmin()){
-
-        $sell_request_id = SellRequest::where('id', $id)->select('id')->first();
-
-        if($sell_request_id){
-            $reject_request = SellRequest::find($id);
-            $reject_request->is_rejected = true;
-            $reject_request->save();   
-            return back()->with('success','Success message');
-        }else{
-            return back()->with('error','Error message');
-        }
-        
-        
-
-        }
+        if($this->user->isOfficeAdmin()){
+                $sell_request_id = SellRequest::where('id', $id)->select('id')->first();
+                if($sell_request_id){
+                    $reject_request = SellRequest::find($id);
+                    $reject_request->is_rejected = true;
+                    $reject_request->save();   
+                    return back()->with('success','Success message');
+                }else{
+                    return back()->with('error','Error message');
+                }
+            }
     }
     // rejected_sales method end
 
@@ -2200,9 +2190,7 @@ class SellerController extends BaseController
 
     }
     
-    
     //undelivered  Soft Delete 
-
     public function undelivered_sales_delete($id){
 
         // return $id;
@@ -2216,5 +2204,4 @@ class SellerController extends BaseController
         return redirect()->back()->with('success', 'Task Completed');
     }
     //undelivered  Soft Delete
-
 }
